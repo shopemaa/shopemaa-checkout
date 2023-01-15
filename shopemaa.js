@@ -4,6 +4,7 @@ function initShopemaa(key, secret) {
     getAndSaveStoreInfo();
     initiateBucket();
     findAndBindBtns();
+    cartCacheCleanUp();
 }
 
 function setStoreKey(key) {
@@ -24,15 +25,23 @@ function getStoreSecret() {
 
 function initiateBucket() {
     if (localStorage.getItem('shopemaaCheckoutBucket') === null) {
-        let newBucket = {
-            'cartId': null,
-            'items': [],
-            'shippingCharge': 0,
-            'paymentFee': 0,
-            'discount': 0
-        }
-        localStorage.setItem('shopemaaCheckoutBucket', JSON.stringify(newBucket))
+        reInitiateBucket();
     }
+}
+
+function reInitiateBucket() {
+    let newBucket = {
+        'cartId': null,
+        'items': [],
+        'shippingCharge': 0,
+        'paymentFee': 0,
+        'discount': 0,
+        'paymentMethodId': null,
+        'shippingMethodId': null,
+        'initAt': new Date().getMilliseconds()
+    }
+    localStorage.setItem('shopemaaCheckoutBucket', JSON.stringify(newBucket))
+
 }
 
 function getBucket() {
@@ -336,6 +345,14 @@ function onGotoCheckout() {
     if (bucket.items.length === 0) {
         return
     }
+    bucket.shippingCharge = 0;
+    bucket.paymentFee = 0;
+    bucket.discount = 0;
+    bucket.paymentMethodId = null;
+    bucket.shippingMethodId = null;
+
+    updateBucket(bucket);
+
     toggleCartView(false);
     createCart();
 }
@@ -414,8 +431,7 @@ function toggleCheckoutView(show) {
 
 function showCheckoutView() {
     let checkView = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80">
-      <div>
-         <input type="hidden" name="cart_id" id="form-cart-id" value="">
+      <form>
          <div class="relative ml-auto w-full max-w-lg bg-white">
             <div class="p-6 border-b-2 border-black">
                <h3 class="text-2xl font-bold">Your Cart</h3>
@@ -707,19 +723,15 @@ function showCheckoutView() {
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">Shipping
                      Method<span style="color: red">*</span></label>
-                     <select onchange="update_shipping_charge(event)" class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="shippingMethod" id="shippingMethod" required>
+                     <select onchange="updateShippingCharge(event)" class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="shippingMethod" id="shippingMethod" required>
                         <option selected disabled value="select">Select</option>
-                        <option value="91ab2490-f111-4ac7-823e-7a6ce5990bfa">Outside Dhaka</option>
-                        <option value="1f10e159-24a5-4e95-9cc9-cbccda1adb77">Dhaka Sub Area: (Narayanganj, Savar, Gazipur, Tongi, Gendaria, Demra etc)</option>
-                        <option value="d295cc34-66f3-4f82-8931-b5c874de5d54">Inside Dhaka</option>
                      </select>
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">Payment
                      Method<span style="color: red">*</span></label>
-                     <select onchange="update_payment_fee(event)" class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="paymentMethod" id="paymentMethod" required>
+                     <select onchange="updatePaymentFee(event)" class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="paymentMethod" id="paymentMethod" required>
                         <option selected disabled value="select">Select</option>
-                        <option value="63b2f538-d4f6-439c-a010-3656e063d7d3">Cash On Delivery</option>
                      </select>
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
@@ -736,7 +748,7 @@ function showCheckoutView() {
                <div class="pb-6 mb-6 border-b-2 border-black">
                   <div class="flex mb-6 pb-6 items-center justify-between border-b-2 border-black">
                      <span class="text-sm font-bold">Subtotal</span>
-                     <span class="text-sm font-black" id="checkout-subtotal">0.00 BDT</span>
+                     <span class="text-sm font-black" id="checkout-subtotal">0.00 ${getCurrency()}</span>
                   </div>
                   <div class="flex mb-3 items-center justify-between">
                      <span class="text-sm font-bold">Discount</span>
@@ -753,7 +765,7 @@ function showCheckoutView() {
                </div>
                <div class="flex mb-6 items-center justify-between">
                   <span class="text-lg font-bold">Grand Total</span>
-                  <span class="text-lg font-black" id="checkout-grand-total">0.00 BDT</span>
+                  <span class="text-lg font-black" id="checkout-grand-total">0.00 ${getCurrency()}</span>
                </div>
                <button type="button" onclick="event.preventDefault(); onCheckout()" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
                   <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
@@ -771,7 +783,7 @@ function showCheckoutView() {
                </a>
             </div>
          </div>
-      </div>
+      </form>
    </div>`;
 
     let checkoutSection = document.createElement('section');
@@ -781,6 +793,122 @@ function showCheckoutView() {
     document.body.appendChild(checkoutSection);
 
     updateCheckoutView();
+    loadShippingMethods();
+    loadPaymentMethods();
+}
+
+function loadShippingMethods() {
+    let payload = `query { shippingMethods { id displayName deliveryCharge deliveryTimeInDays WeightUnit isFlat isActive } }`;
+    sendRequest(payload).then(shippingMethodResp => {
+        if (shippingMethodResp.ok) {
+            shippingMethodResp.json().then(shippingMethodData => {
+                if (shippingMethodData.data !== null) {
+                    let shippingMethods = shippingMethodData.data.shippingMethods;
+                    let shippingMethodUI = document.getElementById('shippingMethod');
+                    shippingMethods.forEach(sm => {
+                        let shippingOption = document.createElement('option');
+                        shippingOption.id = sm.id;
+                        shippingOption.value = sm.id;
+                        if (sm.deliveryTimeInDays === 1 || sm.deliveryTimeInDays === 0) {
+                            shippingOption.innerText = sm.displayName + ` (Delivering today)`;
+                        } else {
+                            shippingOption.innerText = sm.displayName + ` (Approx. delivery in ${sm.deliveryTimeInDays})`;
+                        }
+
+                        shippingMethodUI.appendChild(shippingOption);
+                    });
+                }
+            }).catch(err => {
+                logErr(err);
+            });
+        }
+    }).catch(err => {
+        logErr(err);
+    });
+}
+
+// check shipping charge and update checkout view
+function updateShippingCharge(event) {
+    let bucket = getBucket();
+    bucket.shippingMethodId = event.target.value;
+    updateBucket(bucket);
+
+    let payload = `query { checkShippingCharge(cartId: "${bucket.cartId}", shippingMethodId: "${event.target.value}") }`;
+    sendRequest(payload).then(resp => {
+        if (resp.ok) {
+            resp.json().then(shippingChargeData => {
+                if (shippingChargeData.data !== null) {
+                    let bucket = getBucket();
+                    bucket.shippingCharge = Number(shippingChargeData.data.checkShippingCharge);
+                    updateBucket(bucket);
+                    updateCheckoutView();
+                }
+            }).catch(err => {
+                logErr(err);
+            });
+        }
+    }).catch(err => {
+        logErr(err);
+    });
+}
+
+function loadPaymentMethods() {
+    let payload = `query { paymentMethods { id displayName currencyName currencySymbol isDigitalPayment } }`;
+    sendRequest(payload).then(paymentMethodResp => {
+        if (paymentMethodResp.ok) {
+            paymentMethodResp.json().then(paymentMethodData => {
+                if (paymentMethodData.data !== null) {
+                    let paymentMethods = paymentMethodData.data.paymentMethods;
+                    let paymentMethodUI = document.getElementById('paymentMethod');
+                    paymentMethods.forEach(pm => {
+                        let paymentOption = document.createElement('option');
+                        paymentOption.id = pm.id;
+                        paymentOption.value = pm.id;
+                        paymentOption.innerText = pm.displayName;
+
+                        paymentMethodUI.appendChild(paymentOption);
+                    });
+                }
+            }).catch(err => {
+                logErr(err);
+            });
+        }
+    }).catch(err => {
+        logErr(err);
+    });
+}
+
+function updatePaymentFee(event) {
+    let bucket = getBucket();
+    bucket.paymentMethodId = event.target.value;
+    updateBucket(bucket);
+
+    let shippingQuery = ``;
+    if (bucket.shippingMethodId !== null && bucket.shippingMethodId !== undefined) {
+        shippingQuery += `shippingMethodId: "${bucket.shippingMethodId}"`;
+    }
+
+    let payload = `query { checkPaymentProcessingFee(cartId: "${bucket.cartId}" paymentMethodId: "${event.target.value}" ${shippingQuery}) }`;
+    sendRequest(payload).then(resp => {
+        if (resp.ok) {
+            resp.json().then(paymentFeeData => {
+                if (paymentFeeData.data !== null) {
+                    let bucket = getBucket();
+                    bucket.paymentFee = Number(paymentFeeData.data.checkPaymentProcessingFee);
+                    updateBucket(bucket);
+                    updateCheckoutView();
+                }
+            }).catch(err => {
+                logErr(err);
+            });
+        }
+    }).catch(err => {
+        logErr(err);
+    });
+}
+
+function onCheckout() {
+
 }
 
 function getThemeColor() {
@@ -789,4 +917,24 @@ function getThemeColor() {
 
 function logErr(err) {
     console.log(err)
+}
+
+function cartCacheCleanUp() {
+    let cleanupInterval = 1000 * 60 * 60 * 24;
+    let doCleanUp = function () {
+        console.log('Performing cart cleanup');
+
+        let bucket = getBucket();
+        let cleanupInterval = 1000 * 60 * 60 * 24;
+        let initAt = bucket.initAt;
+        if (initAt === undefined || initAt === null) {
+            reInitiateBucket();
+        }
+        if (new Date().getMilliseconds() - initAt >= cleanupInterval) {
+            reInitiateBucket();
+        }
+    }
+
+    setInterval(doCleanUp, cleanupInterval);
+    doCleanUp();
 }
