@@ -84,7 +84,9 @@ function addToCart(productId) {
         }
         resp.json().then(productData => {
             let product = productData.data.product;
-            addToCartWithChange(product, 1);
+            if (product.stock > 0) {
+                addToCartWithChange(product, 1);
+            }
         }).catch(err => {
             logErr(err);
         })
@@ -467,7 +469,7 @@ function showCheckoutView() {
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">State</label>
-                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="state" placeholder="Type here" />
+                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="state" id="state" placeholder="Type here" />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">Postcode<span style="color: red">*</span></label>
@@ -767,10 +769,17 @@ function showCheckoutView() {
                   <span class="text-lg font-bold">Grand Total</span>
                   <span class="text-lg font-black" id="checkout-grand-total">0.00 ${getCurrency()}</span>
                </div>
-               <button type="button" onclick="event.preventDefault(); onCheckout()" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
+               <button id="completeOrderBtn" type="button" onclick="event.preventDefault(); onCheckout()" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
                   <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
                      <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-600">
                         <span class="text-base font-black text-white">Complete Order</span>
+                     </div>
+                  </div>
+               </button>
+               <button style="display: none" id="completingOrderBtn" type="button" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
+                  <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-400">
+                     <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-300">
+                        <span class="text-base font-black text-white">Completing order</span>
                      </div>
                   </div>
                </button>
@@ -908,7 +917,136 @@ function updatePaymentFee(event) {
 }
 
 function onCheckout() {
+    let completeOrderBtn = document.getElementById('completeOrderBtn');
+    let completingOrderBtn = document.getElementById('completingOrderBtn');
+    if (completeOrderBtn !== null && completeOrderBtn !== undefined) {
+        completeOrderBtn.style.display = "none";
+        completingOrderBtn.style.display = "block";
+        let checkoutPayload = isCheckoutFieldsValid();
+        if (!checkoutPayload.isValid) {
+            completingOrderBtn.style.display = "none";
+            completeOrderBtn.style.display = "block";
+            return
+        }
 
+        console.log(checkoutPayload);
+        let bucket = getBucket();
+
+        let shippingQuery = `shippingAddress: { street: "${checkoutPayload.streetAddress}" city: "${checkoutPayload.city}" state: "${checkoutPayload.state}" postcode: "${checkoutPayload.postcode}" email: "${checkoutPayload.email}" phone: "${checkoutPayload.phone}" locationId: "${checkoutPayload.country}" } shippingMethodId: "${checkoutPayload.shippingMethod}"`
+        let couponCodeQuery = ``;
+        if (checkoutPayload.couponCode) {
+            couponCodeQuery = `couponCode: "${checkoutPayload.couponCode}"`;
+        }
+        let checkoutQuery = `mutation { orderGuestCheckout(params: { firstName: "${checkoutPayload.firstName}" lastName: "${checkoutPayload.lastName}" email: "${checkoutPayload.email}" cartId: "${bucket.cartId}" billingAddress: { street: "${checkoutPayload.streetAddress}" city: "${checkoutPayload.city}" state: "${checkoutPayload.state}" postcode: "${checkoutPayload.postcode}" email: "${checkoutPayload.email}" phone: "${checkoutPayload.phone}" locationId: "${checkoutPayload.country}" } ${shippingQuery} paymentMethodId: "${checkoutPayload.paymentMethod}" ${couponCodeQuery} }) { id hash paymentMethod { isDigitalPayment } } }`;
+        sendRequest(checkoutQuery).then(checkoutResp => {
+            if (checkoutResp.ok) {
+                checkoutResp.json().then(checkoutData => {
+                    if (checkoutData.data !== null) {
+                        let orderId = checkoutData.data.orderGuestCheckout.id;
+                        let isDigitalPayment = checkoutData.data.orderGuestCheckout.paymentMethod.isDigitalPayment;
+                        if (!isDigitalPayment) {
+                            // Handle non digital payment
+                            return
+                        }
+
+                        let generatePaymentNonceQuery = `mutation { orderGeneratePaymentNonceForGuest(orderId: "${orderId}" customerEmail: "${checkoutPayload.email}") { PaymentGatewayName Nonce StripePublishableKey } }`;
+                        sendRequest(generatePaymentNonceQuery).then(nonceResp => {
+                            if (nonceResp.ok) {
+                                nonceResp.json().then(nonceData => {
+                                    if (nonceData.data !== null) {
+                                        let gatewayName = nonceData.data.orderGeneratePaymentNonceForGuest.PaymentGatewayName;
+                                        let nonce = nonceData.data.orderGeneratePaymentNonceForGuest.Nonce;
+                                        let stripeKey = nonceData.data.orderGeneratePaymentNonceForGuest.StripePublishableKey;
+                                        if (gatewayName === 'Stripe') {
+                                            let stripe = Stripe(stripeKey);
+                                            return stripe.redirectToCheckout({sessionId: nonce});
+                                        } else if (gatewayName === 'SSLCommerz') {
+                                            window.location.href = nonce;
+                                        } else {
+                                            console.log('Unknown payment gateway');
+                                        }
+                                    }
+                                }).catch(err => {
+                                    logErr(err);
+                                });
+                            }
+                        }).catch(err => {
+                            logErr(err)
+                        });
+                    }
+                }).catch(err => {
+                    logErr(err);
+                });
+            }
+        }).catch(err => {
+            logErr(err);
+        });
+    }
+}
+
+function isCheckoutFieldsValid() {
+    let checkoutInfo = {
+        isValid: false
+    }
+
+    if (document.getElementById('email').value.trim() === '') {
+        return checkoutInfo;
+    }
+    checkoutInfo.email = document.getElementById('email').value.trim();
+
+    if (document.getElementById('phone').value.trim() === '') {
+        return checkoutInfo;
+    }
+    checkoutInfo.phone = document.getElementById('phone').value.trim();
+
+    if (document.getElementById('firstName').value.trim() === '') {
+        return checkoutInfo;
+    }
+    checkoutInfo.firstName = document.getElementById('firstName').value.trim();
+
+    if (document.getElementById('lastName').value.trim() === '') {
+        return checkoutInfo;
+    }
+    checkoutInfo.lastName = document.getElementById('lastName').value.trim();
+
+    if (document.getElementById('streetAddress').value.trim() === '') {
+        return checkoutInfo;
+    }
+    checkoutInfo.streetAddress = document.getElementById('streetAddress').value.trim();
+
+    if (document.getElementById('city').value.trim() === '') {
+        return checkoutInfo;
+    }
+    checkoutInfo.city = document.getElementById('city').value.trim();
+
+    checkoutInfo.state = document.getElementById('state').value.trim();
+
+    if (document.getElementById('postcode').value.trim() === '') {
+        return checkoutInfo;
+    }
+    checkoutInfo.postcode = document.getElementById('postcode').value.trim();
+
+    if (document.getElementById('country').value.trim() === '') {
+        return checkoutInfo;
+    }
+    checkoutInfo.country = document.getElementById('country').value.trim();
+
+    if (document.getElementById('shippingMethod').value.trim() === 'Select') {
+        return checkoutInfo;
+    }
+    checkoutInfo.shippingMethod = document.getElementById('shippingMethod').value.trim();
+
+    if (document.getElementById('paymentMethod').value.trim() === '') {
+        return checkoutInfo;
+    }
+    checkoutInfo.paymentMethod = document.getElementById('paymentMethod').value.trim();
+
+    if (document.getElementById('coupon-code').value.trim() !== '') {
+        checkoutInfo.couponCode = document.getElementById('coupon-code').value.trim();
+    }
+
+    checkoutInfo.isValid = true;
+    return checkoutInfo;
 }
 
 function getThemeColor() {
