@@ -61,6 +61,7 @@ function updateBucket(bucket) {
 function findAndBindBtns() {
     findAndBindBuyBtns();
     findAndBindCartBtn();
+    findAndBindOtherBtns();
 }
 
 function findAndBindBuyBtns() {
@@ -73,6 +74,12 @@ function findAndBindBuyBtns() {
 function findAndBindCartBtn() {
     $('.shopemaa-cart-btn').click(function () {
         toggleCartView(true);
+    });
+}
+
+function findAndBindOtherBtns() {
+    $('.shopemaa-order-track-btn').click(function () {
+        createOrderSearchModalSection();
     });
 }
 
@@ -937,7 +944,7 @@ function onCheckout() {
         if (checkoutPayload.couponCode) {
             couponCodeQuery = `couponCode: "${checkoutPayload.couponCode}"`;
         }
-        let checkoutQuery = `mutation { orderGuestCheckout(params: { firstName: "${checkoutPayload.firstName}" lastName: "${checkoutPayload.lastName}" email: "${checkoutPayload.email}" cartId: "${bucket.cartId}" billingAddress: { street: "${checkoutPayload.streetAddress}" city: "${checkoutPayload.city}" state: "${checkoutPayload.state}" postcode: "${checkoutPayload.postcode}" email: "${checkoutPayload.email}" phone: "${checkoutPayload.phone}" locationId: "${checkoutPayload.country}" } ${shippingQuery} paymentMethodId: "${checkoutPayload.paymentMethod}" ${couponCodeQuery} }) { id hash paymentMethod { isDigitalPayment } } }`;
+        let checkoutQuery = `mutation { orderGuestCheckout(params: { firstName: "${checkoutPayload.firstName}" lastName: "${checkoutPayload.lastName}" email: "${checkoutPayload.email}" cartId: "${bucket.cartId}" billingAddress: { street: "${checkoutPayload.streetAddress}" city: "${checkoutPayload.city}" state: "${checkoutPayload.state}" postcode: "${checkoutPayload.postcode}" email: "${checkoutPayload.email}" phone: "${checkoutPayload.phone}" locationId: "${checkoutPayload.country}" } ${shippingQuery} paymentMethodId: "${checkoutPayload.paymentMethod}" ${couponCodeQuery} }) { id hash status paymentStatus grandTotal paymentMethod { isDigitalPayment } } }`;
         sendRequest(checkoutQuery).then(checkoutResp => {
             if (checkoutResp.ok) {
                 checkoutResp.json().then(checkoutData => {
@@ -947,6 +954,8 @@ function onCheckout() {
                         if (!isDigitalPayment) {
                             // Handle non digital payment
                             reInitiateBucket();
+                            createOrderDetailsModalSection(checkoutData.data.orderGuestCheckout);
+                            toggleCheckoutView(false);
                             return
                         }
 
@@ -1078,4 +1087,151 @@ function cartCacheCleanUp() {
 
     setInterval(doCleanUp, cleanupInterval);
     doCleanUp();
+}
+
+function createErrorModalSection(errMsg) {
+    let errorModalSection = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
+            <div class="relative ml-auto w-full max-w-lg bg-white">
+                <div class="p-6 border-b-2 border-black">
+                    <h3 class="text-2xl font-bold">Ops</h3>
+                </div>
+
+                <div class="px-6 mb-10 pb-3">
+                    <div class="pb-6 mb-6 border-b-2 border-black">
+                        ` + errMsg + `
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+    let errorSection = document.createElement('section');
+    errorSection.classList.add('relative');
+    errorSection.id = 'errorModal';
+    errorSection.innerHTML += errorModalSection;
+    document.body.appendChild(errorSection);
+}
+
+function hideOrderDetailsModal() {
+    let orderModal = document.getElementById('orderModal');
+    if (orderModal !== null) {
+        orderModal.remove();
+    }
+}
+
+function createOrderDetailsModalSection(order) {
+    let orderModalSection = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
+            <div class="relative ml-auto w-full h-full max-w-lg bg-white">
+                <div class="p-6 border-b-2 border-black">
+                    <h3 class="text-2xl font-bold text-center">Thank you for your order!</h3>
+                </div>
+
+                <div class="px-6 pb-3">
+                    <div class="pb-6 pt-3">
+                        We have received your order and it will be processed accordingly.
+                    </div>
+                </div>
+                
+                <div class="px-6 mb-10 pb-3">
+                    <div class="pb-1 mb-1">
+                        <b>OrderHash :</b> ` + order.hash + `
+                    </div>
+                    <div class="pb-1 mb-1">
+                        <b>Status :</b> ` + order.status + `
+                    </div>
+                    <div class="pb-1 mb-1">
+                        <b>Payment Status :</b> ` + order.paymentStatus + `
+                    </div>
+                    <div class="pb-1 mb-1">
+                        <b>Grand Total :</b> ` + (order.grandTotal / 100).toFixed(2) + ` ` + getCurrency() + `
+                    </div>
+                </div>
+                
+                <div class="px-6 mb-10 pb-3">
+                    <a onclick="event.preventDefault(); hideOrderDetailsModal()" class="pr-5 pl-5 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
+                      <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
+                         <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-400">
+                            <span class="text-base font-black text-black">Continue Shopping</span>
+                         </div>
+                      </div>
+                    </a>
+                </div>
+            </div>
+        </div>`;
+
+    let orderSection = document.createElement('section');
+    orderSection.classList.add('relative');
+    orderSection.id = 'orderModal';
+    orderSection.innerHTML += orderModalSection;
+    document.body.appendChild(orderSection);
+}
+
+function hideOrderSearchModal() {
+    let orderModal = document.getElementById('orderSearchModal');
+    if (orderModal !== null) {
+        orderModal.remove();
+    }
+}
+
+function getOrderDetails() {
+    let orderHash = document.getElementById('order-hash').value;
+    let customerEmail = document.getElementById('customer-email').value;
+    let orderDetailsQuery = `query { orderByCustomerEmail(hash: "${orderHash}", email: "${customerEmail}") { id hash shippingCharge paymentProcessingFee subtotal grandTotal discountedAmount status paymentStatus createdAt updatedAt billingAddress { id street streetTwo city state postcode email phone location { id name shortCode } } shippingAddress { id street streetTwo city state postcode email phone location { id name shortCode } } cart { isShippingRequired cartItems { product { id name slug description fullImages isDigitalProduct productUnit } quantity purchasePrice attributes { name selectedValue } variation { id name price sku stock } } } customer { email phone firstName lastName profilePicture } paymentMethod { id displayName currencyName currencySymbol isDigitalPayment } shippingMethod { id displayName deliveryCharge deliveryTimeInDays WeightUnit isFlat isActive } couponCode { code } payments { isPaid payableAmount gatewayName } } }`;
+    sendRequest(orderDetailsQuery).then(orderDetailsResp => {
+        if (orderDetailsResp.ok) {
+            orderDetailsResp.json().then(orderDetailsData => {
+                if (orderDetailsData.data !== null) {
+                    hideOrderSearchModal();
+                    createOrderDetailsModalSection(orderDetailsData.data.orderByCustomerEmail);
+                }
+            }).catch(err => {
+                logErr(err);
+            });
+        }
+    }).catch(err => {
+        logErr(err);
+    });
+}
+
+function createOrderSearchModalSection() {
+    let orderModalSection = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
+            <div class="relative ml-auto w-full h-full max-w-lg bg-white">
+                <div class="p-6 border-b-2 border-black">
+                    <h3 class="text-2xl font-bold text-center">Track Order</h3>
+                </div>
+
+                <div class="pr-5 pl-5 pt-5">
+                    <div class="flex mb-6 items-center justify-between border-black">
+                     <label class="block w-1/4 text-sm font-bold mb-2">Order Hash<span style="color: red">*</span></label>
+                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" id="order-hash" placeholder="Type here" required />
+                  </div>
+                  <div class="flex mb-6 items-center justify-between border-black">
+                     <label class="block w-1/4 text-sm font-bold mb-2">Your Email<span style="color: red">*</span></label>
+                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="email" id="customer-email" placeholder="Type here" required />
+                  </div>
+                </div>
+                
+                <div class="px-6 mb-10 pb-3">
+                    <a onclick="event.preventDefault(); getOrderDetails()" class="pr-5 pl-5 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
+                      <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
+                         <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-400">
+                            <span class="text-base font-black text-black">Get Details</span>
+                         </div>
+                      </div>
+                    </a>
+                    <a onclick="event.preventDefault(); hideOrderSearchModal()" class="pt-2 mt-2 pr-5 pl-5 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
+                      <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
+                         <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-100">
+                            <span class="text-base font-black text-black">Cancel</span>
+                         </div>
+                      </div>
+                    </a>
+                </div>
+            </div>
+        </div>`;
+
+    let orderSection = document.createElement('section');
+    orderSection.classList.add('relative');
+    orderSection.id = 'orderSearchModal';
+    orderSection.innerHTML += orderModalSection;
+    document.body.appendChild(orderSection);
 }
