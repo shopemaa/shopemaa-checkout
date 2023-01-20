@@ -946,6 +946,7 @@ function onCheckout() {
                         let isDigitalPayment = checkoutData.data.orderGuestCheckout.paymentMethod.isDigitalPayment;
                         if (!isDigitalPayment) {
                             // Handle non digital payment
+                            reInitiateBucket();
                             return
                         }
 
@@ -954,6 +955,8 @@ function onCheckout() {
                             if (nonceResp.ok) {
                                 nonceResp.json().then(nonceData => {
                                     if (nonceData.data !== null) {
+                                        reInitiateBucket();
+
                                         let gatewayName = nonceData.data.orderGeneratePaymentNonceForGuest.PaymentGatewayName;
                                         let nonce = nonceData.data.orderGeneratePaymentNonceForGuest.Nonce;
                                         let stripeKey = nonceData.data.orderGeneratePaymentNonceForGuest.StripePublishableKey;
@@ -1031,12 +1034,12 @@ function isCheckoutFieldsValid() {
     }
     checkoutInfo.country = document.getElementById('country').value.trim();
 
-    if (document.getElementById('shippingMethod').value.trim() === 'Select') {
+    if (document.getElementById('shippingMethod').value.trim() === 'select') {
         return checkoutInfo;
     }
     checkoutInfo.shippingMethod = document.getElementById('shippingMethod').value.trim();
 
-    if (document.getElementById('paymentMethod').value.trim() === '') {
+    if (document.getElementById('paymentMethod').value.trim() === 'select') {
         return checkoutInfo;
     }
     checkoutInfo.paymentMethod = document.getElementById('paymentMethod').value.trim();
