@@ -320,11 +320,20 @@ function createCartModalSection() {
                         <span class="text-lg font-black" id="cart-grand-total">0.00 ` + getCurrency() + `</span>
                     </div>
 
-                    <a onclick="event.preventDefault(); onGotoCheckout()"
+                    <a id="checkoutBtn" onclick="event.preventDefault(); onGotoCheckout()"
                        class="group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
                         <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
                             <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-600">
                                 <span class="text-base font-black text-white">Checkout</span>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <a style="display: none" id="creatingCartBtn" onclick="event.preventDefault();"
+                       class="group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
+                        <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
+                            <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-600">
+                                <span class="text-base font-black text-white">Please wait...</span>
                             </div>
                         </div>
                     </a>
@@ -354,6 +363,9 @@ function onGotoCheckout() {
     if (bucket.items.length === 0) {
         return
     }
+
+    toggleCheckoutBtn(false);
+
     bucket.shippingCharge = 0;
     bucket.paymentFee = 0;
     bucket.discount = 0;
@@ -361,8 +373,6 @@ function onGotoCheckout() {
     bucket.shippingMethodId = null;
 
     updateBucket(bucket);
-
-    toggleCartView(false);
     createCart();
 }
 
@@ -386,23 +396,50 @@ function createCart() {
 
 function handleCartCreateOrUpdate(cartCreateOrUpdatePromise, isCreate) {
     cartCreateOrUpdatePromise.then(resp => {
-        if (resp.ok) {
-            resp.json().then(createOrUpdateData => {
-                if (isCreate) {
-                    let cartId = createOrUpdateData.data.newCart.id;
-                    let bucket = getBucket();
-                    bucket.cartId = cartId;
-                    updateBucket(bucket);
-                }
-
-                showCheckoutView();
-            }).catch(err => {
-                logErr(err);
-            })
+        if (!resp.ok) {
+            logErr(`create or update cart response is: ${resp.statusText}`)
+            toggleCheckoutBtn(true);
+            return
         }
+
+        resp.json().then(createOrUpdateData => {
+            if (createOrUpdateData.data === null) {
+                logErr(`create or update cart response body is NULL`);
+                toggleCheckoutBtn(true);
+                return
+            }
+
+            if (isCreate) {
+                let cartId = createOrUpdateData.data.newCart.id;
+                let bucket = getBucket();
+                bucket.cartId = cartId;
+                updateBucket(bucket);
+            }
+
+            toggleCartView(false);
+            showCheckoutView();
+        }).catch(err => {
+            toggleCheckoutBtn(true);
+            logErr(err);
+        })
     }).catch(err => {
+        toggleCheckoutBtn(true);
         logErr(err);
     })
+}
+
+function toggleCheckoutBtn(show) {
+    if (show) {
+        let checkoutBtn = document.getElementById('checkoutBtn');
+        checkoutBtn.style.display = "block";
+        let creatingCartBtn = document.getElementById('creatingCartBtn');
+        creatingCartBtn.style.display = "none";
+    } else {
+        let checkoutBtn = document.getElementById('checkoutBtn');
+        checkoutBtn.style.display = "none";
+        let creatingCartBtn = document.getElementById('creatingCartBtn');
+        creatingCartBtn.style.display = "block";
+    }
 }
 
 function updateCheckoutView() {
@@ -778,21 +815,21 @@ function showCheckoutView() {
                </div>
                <button id="completeOrderBtn" type="button" onclick="event.preventDefault(); onCheckout()" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
                   <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
-                     <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-600">
+                     <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-600">
                         <span class="text-base font-black text-white">Complete Order</span>
                      </div>
                   </div>
                </button>
                <button style="display: none" id="completingOrderBtn" type="button" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
                   <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-400">
-                     <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-300">
+                     <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-300">
                         <span class="text-base font-black text-white">Completing order</span>
                      </div>
                   </div>
                </button>
-               <a onclick="event.preventDefault(); toggleCartView(true); toggleCheckoutView(false)" class="group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
+               <a onclick="event.preventDefault(); toggleCartView(true); toggleCheckoutView(false); toggleCheckoutBtn(true)" class="group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
                   <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
-                     <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-400">
+                     <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-400">
                         <span class="text-base font-black text-black">Go Back</span>
                      </div>
                   </div>
@@ -926,74 +963,90 @@ function updatePaymentFee(event) {
 function onCheckout() {
     let completeOrderBtn = document.getElementById('completeOrderBtn');
     let completingOrderBtn = document.getElementById('completingOrderBtn');
-    if (completeOrderBtn !== null && completeOrderBtn !== undefined) {
-        completeOrderBtn.style.display = "none";
-        completingOrderBtn.style.display = "block";
-        let checkoutPayload = isCheckoutFieldsValid();
-        if (!checkoutPayload.isValid) {
-            completingOrderBtn.style.display = "none";
-            completeOrderBtn.style.display = "block";
+    if (completeOrderBtn === null || completingOrderBtn === undefined) {
+        logErr("completeOrderBtn not found");
+        return;
+    }
+
+    completeOrderBtn.style.display = "none";
+    completingOrderBtn.style.display = "block";
+    let checkoutPayload = isCheckoutFieldsValid();
+    if (!checkoutPayload.isValid) {
+        logErr("checkout fields are not valid");
+        completingOrderBtn.style.display = "none";
+        completeOrderBtn.style.display = "block";
+        return
+    }
+
+    console.log(checkoutPayload);
+    let bucket = getBucket();
+
+    let shippingQuery = `shippingAddress: { street: "${checkoutPayload.streetAddress}" city: "${checkoutPayload.city}" state: "${checkoutPayload.state}" postcode: "${checkoutPayload.postcode}" email: "${checkoutPayload.email}" phone: "${checkoutPayload.phone}" locationId: "${checkoutPayload.country}" } shippingMethodId: "${checkoutPayload.shippingMethod}"`
+    let couponCodeQuery = ``;
+    if (checkoutPayload.couponCode) {
+        couponCodeQuery = `couponCode: "${checkoutPayload.couponCode}"`;
+    }
+    let checkoutQuery = `mutation { orderGuestCheckout(params: { firstName: "${checkoutPayload.firstName}" lastName: "${checkoutPayload.lastName}" email: "${checkoutPayload.email}" cartId: "${bucket.cartId}" billingAddress: { street: "${checkoutPayload.streetAddress}" city: "${checkoutPayload.city}" state: "${checkoutPayload.state}" postcode: "${checkoutPayload.postcode}" email: "${checkoutPayload.email}" phone: "${checkoutPayload.phone}" locationId: "${checkoutPayload.country}" } ${shippingQuery} paymentMethodId: "${checkoutPayload.paymentMethod}" ${couponCodeQuery} }) { id hash status paymentStatus grandTotal paymentMethod { isDigitalPayment } } }`;
+    sendRequest(checkoutQuery).then(checkoutResp => {
+        if (!checkoutResp.ok) {
+            logErr(`checkout response is : ${checkoutResp.statusText}`)
             return
         }
 
-        console.log(checkoutPayload);
-        let bucket = getBucket();
+        checkoutResp.json().then(checkoutData => {
+            if (checkoutData.data === null) {
+                logErr(`checkout received body is NULL`);
+                return;
+            }
 
-        let shippingQuery = `shippingAddress: { street: "${checkoutPayload.streetAddress}" city: "${checkoutPayload.city}" state: "${checkoutPayload.state}" postcode: "${checkoutPayload.postcode}" email: "${checkoutPayload.email}" phone: "${checkoutPayload.phone}" locationId: "${checkoutPayload.country}" } shippingMethodId: "${checkoutPayload.shippingMethod}"`
-        let couponCodeQuery = ``;
-        if (checkoutPayload.couponCode) {
-            couponCodeQuery = `couponCode: "${checkoutPayload.couponCode}"`;
-        }
-        let checkoutQuery = `mutation { orderGuestCheckout(params: { firstName: "${checkoutPayload.firstName}" lastName: "${checkoutPayload.lastName}" email: "${checkoutPayload.email}" cartId: "${bucket.cartId}" billingAddress: { street: "${checkoutPayload.streetAddress}" city: "${checkoutPayload.city}" state: "${checkoutPayload.state}" postcode: "${checkoutPayload.postcode}" email: "${checkoutPayload.email}" phone: "${checkoutPayload.phone}" locationId: "${checkoutPayload.country}" } ${shippingQuery} paymentMethodId: "${checkoutPayload.paymentMethod}" ${couponCodeQuery} }) { id hash status paymentStatus grandTotal paymentMethod { isDigitalPayment } } }`;
-        sendRequest(checkoutQuery).then(checkoutResp => {
-            if (checkoutResp.ok) {
-                checkoutResp.json().then(checkoutData => {
-                    if (checkoutData.data !== null) {
-                        let orderId = checkoutData.data.orderGuestCheckout.id;
-                        let isDigitalPayment = checkoutData.data.orderGuestCheckout.paymentMethod.isDigitalPayment;
-                        if (!isDigitalPayment) {
-                            // Handle non digital payment
-                            reInitiateBucket();
-                            createOrderDetailsModalSection(checkoutData.data.orderGuestCheckout);
-                            toggleCheckoutView(false);
-                            return
-                        }
+            let orderId = checkoutData.data.orderGuestCheckout.id;
+            let isDigitalPayment = checkoutData.data.orderGuestCheckout.paymentMethod.isDigitalPayment;
+            if (!isDigitalPayment) {
+                // Handle non digital payment
+                reInitiateBucket();
+                createOrderDetailsModalSection(checkoutData.data.orderGuestCheckout);
+                toggleCheckoutView(false);
+                return
+            }
 
-                        let generatePaymentNonceQuery = `mutation { orderGeneratePaymentNonceForGuest(orderId: "${orderId}" customerEmail: "${checkoutPayload.email}") { PaymentGatewayName Nonce StripePublishableKey } }`;
-                        sendRequest(generatePaymentNonceQuery).then(nonceResp => {
-                            if (nonceResp.ok) {
-                                nonceResp.json().then(nonceData => {
-                                    if (nonceData.data !== null) {
-                                        reInitiateBucket();
+            let generatePaymentNonceQuery = `mutation { orderGeneratePaymentNonceForGuest(orderId: "${orderId}" customerEmail: "${checkoutPayload.email}") { PaymentGatewayName Nonce StripePublishableKey } }`;
+            sendRequest(generatePaymentNonceQuery).then(nonceResp => {
+                if (!nonceResp.ok) {
+                    logErr(`generate nonce response is: ${nonceResp.statusText}`)
+                    return
+                }
 
-                                        let gatewayName = nonceData.data.orderGeneratePaymentNonceForGuest.PaymentGatewayName;
-                                        let nonce = nonceData.data.orderGeneratePaymentNonceForGuest.Nonce;
-                                        let stripeKey = nonceData.data.orderGeneratePaymentNonceForGuest.StripePublishableKey;
-                                        if (gatewayName === 'Stripe') {
-                                            let stripe = Stripe(stripeKey);
-                                            return stripe.redirectToCheckout({sessionId: nonce});
-                                        } else if (gatewayName === 'SSLCommerz') {
-                                            window.location.href = nonce;
-                                        } else {
-                                            console.log('Unknown payment gateway');
-                                        }
-                                    }
-                                }).catch(err => {
-                                    logErr(err);
-                                });
-                            }
-                        }).catch(err => {
-                            logErr(err)
-                        });
+                nonceResp.json().then(nonceData => {
+                    if (nonceData.data === null) {
+                        logErr(`generate nonce received body is NULL`);
+                        return
+                    }
+
+                    reInitiateBucket();
+
+                    let gatewayName = nonceData.data.orderGeneratePaymentNonceForGuest.PaymentGatewayName;
+                    let nonce = nonceData.data.orderGeneratePaymentNonceForGuest.Nonce;
+                    let stripeKey = nonceData.data.orderGeneratePaymentNonceForGuest.StripePublishableKey;
+                    if (gatewayName === 'Stripe') {
+                        let stripe = Stripe(stripeKey);
+                        return stripe.redirectToCheckout({sessionId: nonce});
+                    } else if (gatewayName === 'SSLCommerz') {
+                        window.location.href = nonce;
+                    } else {
+                        console.log('Unknown payment gateway');
                     }
                 }).catch(err => {
                     logErr(err);
                 });
-            }
+            }).catch(err => {
+                logErr(err)
+            });
         }).catch(err => {
             logErr(err);
         });
-    }
+    }).catch(err => {
+        logErr(err);
+    });
 }
 
 function isCheckoutFieldsValid() {
@@ -1062,7 +1115,7 @@ function isCheckoutFieldsValid() {
 }
 
 function getThemeColor() {
-    return "orange";
+    return "gray";
 }
 
 function logErr(err) {
@@ -1090,10 +1143,17 @@ function cartCacheCleanUp() {
 }
 
 function createErrorModalSection(errMsg) {
+    setTimeout(function () {
+        let errModal = document.getElementById('errorModal');
+        if (errModal !== null && errModal !== undefined) {
+            errModal.remove();
+        }
+    }, 5000);
+
     let errorModalSection = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
             <div class="relative ml-auto w-full max-w-lg bg-white">
                 <div class="p-6 border-b-2 border-black">
-                    <h3 class="text-2xl font-bold">Ops</h3>
+                    <h3 class="text-2xl font-bold text-danger">Ops</h3>
                 </div>
 
                 <div class="px-6 mb-10 pb-3">
@@ -1149,7 +1209,7 @@ function createOrderDetailsModalSection(order) {
                 <div class="px-6 mb-10 pb-3">
                     <a onclick="event.preventDefault(); hideOrderDetailsModal()" class="pr-5 pl-5 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
                       <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
-                         <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-400">
+                         <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-400">
                             <span class="text-base font-black text-black">Continue Shopping</span>
                          </div>
                       </div>
@@ -1213,14 +1273,14 @@ function createOrderSearchModalSection() {
                 <div class="px-6 mb-10 pb-3">
                     <a onclick="event.preventDefault(); getOrderDetails()" class="pr-5 pl-5 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
                       <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
-                         <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-400">
+                         <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-400">
                             <span class="text-base font-black text-black">Get Details</span>
                          </div>
                       </div>
                     </a>
                     <a onclick="event.preventDefault(); hideOrderSearchModal()" class="pt-2 mt-2 pr-5 pl-5 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
                       <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
-                         <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-orange-100">
+                         <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-100">
                             <span class="text-base font-black text-black">Cancel</span>
                          </div>
                       </div>
