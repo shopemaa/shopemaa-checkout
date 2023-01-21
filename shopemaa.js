@@ -452,7 +452,7 @@ function updateCheckoutView() {
     document.getElementById('checkout-subtotal').innerText = (subtotal / 100).toFixed(2) + ' ' + getCurrency();
 
     let discount = bucket.discount;
-    document.getElementById('checkout-discount').innerText = (discount / 100).toFixed(2) + ' ' + getCurrency();
+    document.getElementById('checkout-discount').innerText = '-' + (discount / 100).toFixed(2) + ' ' + getCurrency();
 
     let shippingCharge = bucket.shippingCharge;
     document.getElementById('checkout-shipping-charge').innerText = (shippingCharge / 100).toFixed(2) + ' ' + getCurrency();
@@ -473,6 +473,44 @@ function toggleCheckoutView(show) {
             checkoutModal.remove();
         }
     }
+}
+
+// apply discount and update checkout view
+function applyDiscount(event) {
+    if (document.getElementById('coupon').value.trim() === "") {
+        return
+    }
+
+    let coupon = document.getElementById('coupon').value
+    let bucket = getBucket();
+
+    let shippingMethodQuery = ``;
+    let shippingMethodId = document.getElementById('shippingMethod').value;
+    if (shippingMethodId !== null && shippingMethodId !== undefined && shippingMethodId !== 'select') {
+        shippingMethodQuery = `shippingMethodId: "${shippingMethodId}"`
+    }
+    let couponQuery = `query { checkDiscountForGuests(couponCode: "${coupon}" cartId: "${bucket.cartId}" ${shippingMethodQuery}) }`;
+    sendRequest(couponQuery).then(couponResp => {
+        if (!couponResp.ok) {
+            return
+        }
+
+        couponResp.json().then(couponData => {
+            if (couponData.data === null) {
+                return
+            }
+
+            let discount = couponData.data.checkDiscountForGuests;
+            bucket = getBucket();
+            bucket.discount = discount;
+            updateBucket(bucket);
+            updateCheckoutView();
+        }).catch(err => {
+            logErr(err);
+        });
+    }).catch(err => {
+        logErr(err);
+    });
 }
 
 function showCheckoutView() {
@@ -781,8 +819,8 @@ function showCheckoutView() {
                      </select>
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
-                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="coupon" id="coupon-code" placeholder="Coupon Code" />
-                     <a onclick="event.preventDefault(); apply_discount(event)" class="ml-2 group relative inline-block h-12 w-2/4 bg-blueGray-900 rounded-md" href="#">
+                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="coupon" id="coupon" placeholder="Coupon Code" />
+                     <a onclick="event.preventDefault(); applyDiscount(event)" class="ml-2 group relative inline-block h-12 w-2/4 bg-blueGray-900 rounded-md" href="#">
                         <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
                            <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-gray-600">
                               <span class="text-base font-black text-white">Apply</span>
@@ -798,7 +836,7 @@ function showCheckoutView() {
                   </div>
                   <div class="flex mb-3 items-center justify-between">
                      <span class="text-sm font-bold">Discount</span>
-                     <span class="text-sm font-black" id="checkout-discount">To be calculated</span>
+                     <span class="text-sm font-black" id="checkout-discount" style="color: red">To be calculated</span>
                   </div>
                   <div class="flex mb-3 items-center justify-between">
                      <span class="text-sm font-bold">Shipping Charge</span>
@@ -973,6 +1011,7 @@ function onCheckout() {
     let checkoutPayload = isCheckoutFieldsValid();
     if (!checkoutPayload.isValid) {
         logErr("checkout fields are not valid");
+        logErr(checkoutPayload);
         completingOrderBtn.style.display = "none";
         completeOrderBtn.style.display = "block";
         return
@@ -1091,7 +1130,7 @@ function isCheckoutFieldsValid() {
     }
     checkoutInfo.postcode = document.getElementById('postcode').value.trim();
 
-    if (document.getElementById('country').value.trim() === '') {
+    if (document.getElementById('country').value.trim() === 'select') {
         return checkoutInfo;
     }
     checkoutInfo.country = document.getElementById('country').value.trim();
