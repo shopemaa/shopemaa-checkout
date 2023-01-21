@@ -41,6 +41,12 @@ initShopemaa("YOUR_STORE_APP_KEY", "YOUR_STORE_APP_SECRET");
 <a class="shopemaa-order-track-btn">Track Order</a>
 ```
 
+* Show cart items count using class `shopemaa-cart-items-count`
+
+```html
+<span class="shopemaa-cart-items-count">0</span>
+```
+
 Check [index.html](./examples/index.html) from examples directory.
 
 Copyright © 2023 [Shopemaa LLC](https://shopemaa.com)
