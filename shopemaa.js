@@ -5,6 +5,7 @@ function initShopemaa(key, secret) {
     initiateBucket();
     findAndBindBtns();
     cartCacheCleanUp();
+    updateCartItemsCount();
 }
 
 function setStoreKey(key) {
@@ -71,6 +72,17 @@ function findAndBindBuyBtns() {
     })
 }
 
+function updateCartItemsCount() {
+    let bucket = getBucket();
+    let elements = document.getElementsByClassName('shopemaa-cart-items-count');
+    if (elements !== null && elements !== undefined) {
+        let n = elements.length;
+        for (let i = 0; i < n; i++) {
+            elements.item(i).innerText = bucket.items.length;
+        }
+    }
+}
+
 function findAndBindCartBtn() {
     $('.shopemaa-cart-btn').click(function () {
         toggleCartView(true);
@@ -105,7 +117,7 @@ function addToCart(productId) {
 function updateItemFromCart(product, change) {
     let bucket = getBucket();
     bucket.items.forEach(item => {
-        let eleId = `cart_item_${item.id}`
+        let eleId = `shopemaa_cart_item_${item.id}`
         let ele = document.getElementById(eleId);
         if (ele !== null && ele !== undefined) {
             ele.remove();
@@ -140,6 +152,7 @@ function addToCartWithChange(product, change) {
 
     updateBucket(bucket);
     toggleCartView(true);
+    updateCartItemsCount();
 }
 
 function getProductById(productId) {
@@ -202,7 +215,7 @@ function updateSubtotalView() {
     getBucket().items.forEach(item => {
         subtotal += (item.qty * calculateProductPrice(item));
     })
-    document.getElementById('cart-subtotal').innerText = (subtotal / 100).toFixed(2) + ' ' + getCurrency();
+    document.getElementById('shopemaa_cart-subtotal').innerText = (subtotal / 100).toFixed(2) + ' ' + getCurrency();
 }
 
 // updates cart grand total
@@ -213,26 +226,26 @@ function updateGrandTotalView() {
         subtotal += (item.qty * calculateProductPrice(item));
     })
     let grandTotal = subtotal;
-    document.getElementById('cart-grand-total').innerText = (grandTotal / 100).toFixed(2) + ' ' + getCurrency();
+    document.getElementById('shopemaa_cart-grand-total').innerText = (grandTotal / 100).toFixed(2) + ' ' + getCurrency();
 }
 
 function toggleCartView(show) {
     if (show) {
-        let cartModel = document.getElementById('cartModal');
+        let cartModel = document.getElementById('shopemaa_cartModal');
         if (cartModel === undefined || cartModel === null) {
             createCartModalSection();
         }
 
-        let cartItemsView = document.getElementById('cartItemsView');
+        let cartItemsView = document.getElementById('shopemaa_cartItemsView');
         getBucket().items.forEach(item => {
             cartItemsView.appendChild(createCartItem(item));
 
-            let qtyMinusBtn = document.getElementById(`qty_minus_${item.id}`);
+            let qtyMinusBtn = document.getElementById(`shopemaa_qty_minus_${item.id}`);
             qtyMinusBtn.onclick = function () {
                 updateItemFromCart(item, -1);
             }
 
-            let qtyPlusBtn = document.getElementById(`qty_plus_${item.id}`);
+            let qtyPlusBtn = document.getElementById(`shopemaa_qty_plus_${item.id}`);
             qtyPlusBtn.onclick = function () {
                 updateItemFromCart(item, 1);
             }
@@ -241,7 +254,7 @@ function toggleCartView(show) {
         updateSubtotalView();
         updateGrandTotalView();
     } else {
-        let cartModel = document.getElementById('cartModal');
+        let cartModel = document.getElementById('shopemaa_cartModal');
         if (cartModel !== null && cartModel !== undefined) {
             cartModel.remove();
         }
@@ -255,12 +268,12 @@ function createCartItem(product) {
     let qtyMinus = document.createElement('button');
     qtyMinus.classList.add("flex", "w-3.5", "h-3.5", "px-px", "items-center", "justify-center", "bg-black", "hover:bg-indigo-500", "rounded", "transition", "duration-100")
     qtyMinus.innerHTML = `<div class="h-px mx-px w-full bg-white"></div>`;
-    qtyMinus.id = `qty_minus_${product.id}`;
+    qtyMinus.id = `shopemaa_qty_minus_${product.id}`;
 
     let qtyPlus = document.createElement('button');
     qtyPlus.classList.add("flex", "w-3.5", "h-3.5", "px-px", "items-center", "justify-center", "bg-black", "hover:bg-indigo-500", "rounded", "transition", "duration-100")
     qtyPlus.innerHTML = `<div class="relative h-full w-full py-px"> <div class="absolute top-1/2 left-0 h-px w-full bg-white"></div> <div class="inline-block max-w-max mx-auto h-full bg-white"> <div class="inline-block px-px"></div> </div> </div>`;
-    qtyPlus.id = `qty_plus_${product.id}`;
+    qtyPlus.id = `shopemaa_qty_plus_${product.id}`;
 
     let layout = `<div class="flex mb-6 justify-between items-center">
                         <div class="flex-grow flex flex-wrap -mx-2">
@@ -283,7 +296,7 @@ function createCartItem(product) {
                         </div>
                     </div>`;
     let layoutEle = document.createElement('div');
-    layoutEle.id = `cart_item_${product.id}`;
+    layoutEle.id = `shopemaa_cart_item_${product.id}`;
     layoutEle.innerHTML = layout;
     return layoutEle;
 }
@@ -294,13 +307,13 @@ function createCartModalSection() {
                 <div class="p-6 border-b-2 border-black">
                     <h3 class="text-2xl font-bold">Your Cart</h3>
                 </div>
-                <div id="cartItemsView" class="p-6 mb-6 border-b-2 border-black"></div>
+                <div id="shopemaa_cartItemsView" class="p-6 mb-6 border-b-2 border-black"></div>
 
                 <div class="px-6 mb-10 pb-3">
                     <div class="pb-6 mb-6 border-b-2 border-black">
                         <div class="flex mb-6 pb-6 items-center justify-between border-b-2 border-black">
                             <span class="text-sm font-bold">Subtotal</span>
-                            <span class="text-sm font-black" id="cart-subtotal">0.00 ` + getCurrency() + `</span>
+                            <span class="text-sm font-black" id="shopemaa_cart-subtotal">0.00 ` + getCurrency() + `</span>
                         </div>
                         <div class="flex mb-3 items-center justify-between">
                             <span class="text-sm font-bold">Discount</span>
@@ -317,10 +330,10 @@ function createCartModalSection() {
                     </div>
                     <div class="flex mb-6 items-center justify-between">
                         <span class="text-lg font-bold">Grand Total</span>
-                        <span class="text-lg font-black" id="cart-grand-total">0.00 ` + getCurrency() + `</span>
+                        <span class="text-lg font-black" id="shopemaa_cart-grand-total">0.00 ` + getCurrency() + `</span>
                     </div>
 
-                    <a id="checkoutBtn" onclick="event.preventDefault(); onGotoCheckout()"
+                    <a id="shopemaa_checkoutBtn" onclick="event.preventDefault(); onGotoCheckout()"
                        class="group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
                         <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
                             <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-600">
@@ -329,7 +342,7 @@ function createCartModalSection() {
                         </div>
                     </a>
                     
-                    <a style="display: none" id="creatingCartBtn" onclick="event.preventDefault();"
+                    <a style="display: none" id="shopemaa_creatingCartBtn" onclick="event.preventDefault();"
                        class="group relative inline-block h-12 w-full bg-blueGray-900 rounded-md" href="#">
                         <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
                             <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-600">
@@ -352,7 +365,7 @@ function createCartModalSection() {
 
     let cartSection = document.createElement('section');
     cartSection.classList.add('relative');
-    cartSection.id = 'cartModal';
+    cartSection.id = 'shopemaa_cartModal';
     cartSection.innerHTML += cartModalSection;
     document.body.appendChild(cartSection);
 }
@@ -430,14 +443,14 @@ function handleCartCreateOrUpdate(cartCreateOrUpdatePromise, isCreate) {
 
 function toggleCheckoutBtn(show) {
     if (show) {
-        let checkoutBtn = document.getElementById('checkoutBtn');
+        let checkoutBtn = document.getElementById('shopemaa_checkoutBtn');
         checkoutBtn.style.display = "block";
-        let creatingCartBtn = document.getElementById('creatingCartBtn');
+        let creatingCartBtn = document.getElementById('shopemaa_creatingCartBtn');
         creatingCartBtn.style.display = "none";
     } else {
-        let checkoutBtn = document.getElementById('checkoutBtn');
+        let checkoutBtn = document.getElementById('shopemaa_checkoutBtn');
         checkoutBtn.style.display = "none";
-        let creatingCartBtn = document.getElementById('creatingCartBtn');
+        let creatingCartBtn = document.getElementById('shopemaa_creatingCartBtn');
         creatingCartBtn.style.display = "block";
     }
 }
@@ -449,26 +462,26 @@ function updateCheckoutView() {
         subtotal += (item.qty * calculateProductPrice(item));
     })
 
-    document.getElementById('checkout-subtotal').innerText = (subtotal / 100).toFixed(2) + ' ' + getCurrency();
+    document.getElementById('shopemaa_checkout-subtotal').innerText = (subtotal / 100).toFixed(2) + ' ' + getCurrency();
 
     let discount = bucket.discount;
-    document.getElementById('checkout-discount').innerText = '-' + (discount / 100).toFixed(2) + ' ' + getCurrency();
+    document.getElementById('shopemaa_checkout-discount').innerText = '-' + (discount / 100).toFixed(2) + ' ' + getCurrency();
 
     let shippingCharge = bucket.shippingCharge;
-    document.getElementById('checkout-shipping-charge').innerText = (shippingCharge / 100).toFixed(2) + ' ' + getCurrency();
+    document.getElementById('shopemaa_checkout-shipping-charge').innerText = (shippingCharge / 100).toFixed(2) + ' ' + getCurrency();
 
     let paymentFee = bucket.paymentFee;
-    document.getElementById('checkout-payment-fee').innerText = (paymentFee / 100).toFixed(2) + ' ' + getCurrency();
+    document.getElementById('shopemaa_checkout-payment-fee').innerText = (paymentFee / 100).toFixed(2) + ' ' + getCurrency();
 
     let grandTotal = ((subtotal + shippingCharge + paymentFee - discount) / 100).toFixed(2);
-    document.getElementById('checkout-grand-total').innerText = grandTotal + ' ' + getCurrency();
+    document.getElementById('shopemaa_checkout-grand-total').innerText = grandTotal + ' ' + getCurrency();
 }
 
 function toggleCheckoutView(show) {
     if (show) {
         showCheckoutView();
     } else {
-        let checkoutModal = document.getElementById('checkoutModal');
+        let checkoutModal = document.getElementById('shopemaa_checkoutModal');
         if (checkoutModal !== null && checkoutModal !== undefined) {
             checkoutModal.remove();
         }
@@ -477,15 +490,15 @@ function toggleCheckoutView(show) {
 
 // apply discount and update checkout view
 function applyDiscount(event) {
-    if (document.getElementById('coupon').value.trim() === "") {
+    if (document.getElementById('shopemaa_coupon').value.trim() === "") {
         return
     }
 
-    let coupon = document.getElementById('coupon').value
+    let coupon = document.getElementById('shopemaa_coupon').value
     let bucket = getBucket();
 
     let shippingMethodQuery = ``;
-    let shippingMethodId = document.getElementById('shippingMethod').value;
+    let shippingMethodId = document.getElementById('shopemaa_shippingMethod').value;
     if (shippingMethodId !== null && shippingMethodId !== undefined && shippingMethodId !== 'select') {
         shippingMethodQuery = `shippingMethodId: "${shippingMethodId}"`
     }
@@ -524,42 +537,42 @@ function showCheckoutView() {
                <div class="pb-6 mb-6 border-black">
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-1/4 text-sm font-bold mb-2">Email<span style="color: red">*</span></label>
-                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="email" name="email" id="email" placeholder="Type here" required />
+                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="email" name="email" id="shopemaa_email" placeholder="Type here" required />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-1/4 text-sm font-bold mb-2">Phone<span style="color: red">*</span></label>
-                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="tel" name="phone" id="phone" placeholder="Type here" required />
+                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="tel" name="phone" id="shopemaa_phone" placeholder="Type here" required />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-1/4 text-sm font-bold mb-2">First
                      Name<span style="color: red">*</span></label>
-                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="firstName" id="firstName" placeholder="Type here" required />
+                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="firstName" id="shopemaa_firstName" placeholder="Type here" required />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-1/4 text-sm font-bold mb-2">Last
                      Name<span style="color: red">*</span></label>
-                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="lastName" id="lastName" placeholder="Type here" required />
+                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="lastName" id="shopemaa_lastName" placeholder="Type here" required />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-1/4 text-sm font-bold mb-2">Street
                      Address<span style="color: red">*</span></label>
-                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="streetAddress" id="streetAddress" placeholder="Type here" required />
+                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="streetAddress" id="shopemaa_streetAddress" placeholder="Type here" required />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">City<span style="color: red">*</span></label>
-                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="city" id="city" placeholder="Type here" required />
+                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="city" id="shopemaa_city" placeholder="Type here" required />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">State</label>
-                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="state" id="state" placeholder="Type here" />
+                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="state" id="shopemaa_state" placeholder="Type here" />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">Postcode<span style="color: red">*</span></label>
-                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="postcode" id="postcode" placeholder="Type here" required />
+                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="postcode" id="shopemaa_postcode" placeholder="Type here" required />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">Country<span style="color: red">*</span></label>
-                     <select class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="country" id="country" required>
+                     <select class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="country" id="shopemaa_country" required>
                         <option selected disabled value="select">Select</option>
                         <option value="6d024f10-9374-4a10-bff2-a87a799cbe7b">Afghanistan</option>
                         <option value="7a062d59-6403-4f22-807d-8232802e3281">Åland Islands</option>
@@ -807,19 +820,19 @@ function showCheckoutView() {
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">Shipping
                      Method<span style="color: red">*</span></label>
-                     <select onchange="updateShippingCharge(event)" class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="shippingMethod" id="shippingMethod" required>
+                     <select onchange="updateShippingCharge(event)" class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="shippingMethod" id="shopemaa_shippingMethod" required>
                         <option selected disabled value="select">Select</option>
                      </select>
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-2/4 text-sm font-bold mb-2">Payment
                      Method<span style="color: red">*</span></label>
-                     <select onchange="updatePaymentFee(event)" class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="paymentMethod" id="paymentMethod" required>
+                     <select onchange="updatePaymentFee(event)" class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" name="paymentMethod" id="shopemaa_paymentMethod" required>
                         <option selected disabled value="select">Select</option>
                      </select>
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
-                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="coupon" id="coupon" placeholder="Coupon Code" />
+                     <input class="w-2/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" name="coupon" id="shopemaa_coupon" placeholder="Coupon Code" />
                      <a onclick="event.preventDefault(); applyDiscount(event)" class="ml-2 group relative inline-block h-12 w-2/4 bg-blueGray-900 rounded-md" href="#">
                         <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
                            <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-gray-600">
@@ -832,33 +845,33 @@ function showCheckoutView() {
                <div class="pb-6 mb-6 border-b-2 border-black">
                   <div class="flex mb-6 pb-6 items-center justify-between border-b-2 border-black">
                      <span class="text-sm font-bold">Subtotal</span>
-                     <span class="text-sm font-black" id="checkout-subtotal">0.00 ${getCurrency()}</span>
+                     <span class="text-sm font-black" id="shopemaa_checkout-subtotal">0.00 ${getCurrency()}</span>
                   </div>
                   <div class="flex mb-3 items-center justify-between">
                      <span class="text-sm font-bold">Discount</span>
-                     <span class="text-sm font-black" id="checkout-discount" style="color: red">To be calculated</span>
+                     <span class="text-sm font-black" id="shopemaa_checkout-discount" style="color: red">To be calculated</span>
                   </div>
                   <div class="flex mb-3 items-center justify-between">
                      <span class="text-sm font-bold">Shipping Charge</span>
-                     <span class="text-sm font-black" id="checkout-shipping-charge">To be calculated</span>
+                     <span class="text-sm font-black" id="shopemaa_checkout-shipping-charge">To be calculated</span>
                   </div>
                   <div class="flex mb-3 items-center justify-between">
                      <span class="text-sm font-bold">Payment Fee</span>
-                     <span class="text-sm font-black" id="checkout-payment-fee">To be calculated</span>
+                     <span class="text-sm font-black" id="shopemaa_checkout-payment-fee">To be calculated</span>
                   </div>
                </div>
                <div class="flex mb-6 items-center justify-between">
                   <span class="text-lg font-bold">Grand Total</span>
-                  <span class="text-lg font-black" id="checkout-grand-total">0.00 ${getCurrency()}</span>
+                  <span class="text-lg font-black" id="shopemaa_checkout-grand-total">0.00 ${getCurrency()}</span>
                </div>
-               <button id="completeOrderBtn" type="button" onclick="event.preventDefault(); onCheckout()" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
+               <button id="shopemaa_completeOrderBtn" type="button" onclick="event.preventDefault(); onCheckout()" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
                   <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-300">
                      <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-600">
                         <span class="text-base font-black text-white">Complete Order</span>
                      </div>
                   </div>
                </button>
-               <button style="display: none" id="completingOrderBtn" type="button" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
+               <button style="display: none" id="shopemaa_completingOrderBtn" type="button" class="mb-2 group relative inline-block h-12 w-full bg-blueGray-900 rounded-md">
                   <div class="absolute top-0 left-0 transform -translate-y-1 -translate-x-1 w-full h-full group-hover:translate-y-0 group-hover:translate-x-0 transition duration-400">
                      <div class="flex h-full w-full items-center justify-center border-2 border-black rounded-md transition duration-300 bg-` + getThemeColor() + `-300">
                         <span class="text-base font-black text-white">Completing order</span>
@@ -879,7 +892,7 @@ function showCheckoutView() {
 
     let checkoutSection = document.createElement('section');
     checkoutSection.classList.add('relative');
-    checkoutSection.id = 'checkoutModal';
+    checkoutSection.id = 'shopemaa_checkoutModal';
     checkoutSection.innerHTML += checkView;
     document.body.appendChild(checkoutSection);
 
@@ -895,7 +908,7 @@ function loadShippingMethods() {
             shippingMethodResp.json().then(shippingMethodData => {
                 if (shippingMethodData.data !== null) {
                     let shippingMethods = shippingMethodData.data.shippingMethods;
-                    let shippingMethodUI = document.getElementById('shippingMethod');
+                    let shippingMethodUI = document.getElementById('shopemaa_shippingMethod');
                     shippingMethods.forEach(sm => {
                         let shippingOption = document.createElement('option');
                         shippingOption.id = sm.id;
@@ -950,7 +963,7 @@ function loadPaymentMethods() {
             paymentMethodResp.json().then(paymentMethodData => {
                 if (paymentMethodData.data !== null) {
                     let paymentMethods = paymentMethodData.data.paymentMethods;
-                    let paymentMethodUI = document.getElementById('paymentMethod');
+                    let paymentMethodUI = document.getElementById('shopemaa_paymentMethod');
                     paymentMethods.forEach(pm => {
                         let paymentOption = document.createElement('option');
                         paymentOption.id = pm.id;
@@ -999,8 +1012,8 @@ function updatePaymentFee(event) {
 }
 
 function onCheckout() {
-    let completeOrderBtn = document.getElementById('completeOrderBtn');
-    let completingOrderBtn = document.getElementById('completingOrderBtn');
+    let completeOrderBtn = document.getElementById('shopemaa_completeOrderBtn');
+    let completingOrderBtn = document.getElementById('shopemaa_completingOrderBtn');
     if (completeOrderBtn === null || completingOrderBtn === undefined) {
         logErr("completeOrderBtn not found");
         return;
@@ -1093,60 +1106,60 @@ function isCheckoutFieldsValid() {
         isValid: false
     }
 
-    if (document.getElementById('email').value.trim() === '') {
+    if (document.getElementById('shopemaa_email').value.trim() === '') {
         return checkoutInfo;
     }
-    checkoutInfo.email = document.getElementById('email').value.trim();
+    checkoutInfo.email = document.getElementById('shopemaa_email').value.trim();
 
-    if (document.getElementById('phone').value.trim() === '') {
+    if (document.getElementById('shopemaa_phone').value.trim() === '') {
         return checkoutInfo;
     }
-    checkoutInfo.phone = document.getElementById('phone').value.trim();
+    checkoutInfo.phone = document.getElementById('shopemaa_phone').value.trim();
 
-    if (document.getElementById('firstName').value.trim() === '') {
+    if (document.getElementById('shopemaa_firstName').value.trim() === '') {
         return checkoutInfo;
     }
-    checkoutInfo.firstName = document.getElementById('firstName').value.trim();
+    checkoutInfo.firstName = document.getElementById('shopemaa_firstName').value.trim();
 
-    if (document.getElementById('lastName').value.trim() === '') {
+    if (document.getElementById('shopemaa_lastName').value.trim() === '') {
         return checkoutInfo;
     }
-    checkoutInfo.lastName = document.getElementById('lastName').value.trim();
+    checkoutInfo.lastName = document.getElementById('shopemaa_lastName').value.trim();
 
-    if (document.getElementById('streetAddress').value.trim() === '') {
+    if (document.getElementById('shopemaa_streetAddress').value.trim() === '') {
         return checkoutInfo;
     }
-    checkoutInfo.streetAddress = document.getElementById('streetAddress').value.trim();
+    checkoutInfo.streetAddress = document.getElementById('shopemaa_streetAddress').value.trim();
 
-    if (document.getElementById('city').value.trim() === '') {
+    if (document.getElementById('shopemaa_city').value.trim() === '') {
         return checkoutInfo;
     }
-    checkoutInfo.city = document.getElementById('city').value.trim();
+    checkoutInfo.city = document.getElementById('shopemaa_city').value.trim();
 
-    checkoutInfo.state = document.getElementById('state').value.trim();
+    checkoutInfo.state = document.getElementById('shopemaa_state').value.trim();
 
-    if (document.getElementById('postcode').value.trim() === '') {
+    if (document.getElementById('shopemaa_postcode').value.trim() === '') {
         return checkoutInfo;
     }
-    checkoutInfo.postcode = document.getElementById('postcode').value.trim();
+    checkoutInfo.postcode = document.getElementById('shopemaa_postcode').value.trim();
 
-    if (document.getElementById('country').value.trim() === 'select') {
+    if (document.getElementById('shopemaa_country').value.trim() === 'select') {
         return checkoutInfo;
     }
-    checkoutInfo.country = document.getElementById('country').value.trim();
+    checkoutInfo.country = document.getElementById('shopemaa_country').value.trim();
 
-    if (document.getElementById('shippingMethod').value.trim() === 'select') {
+    if (document.getElementById('shopemaa_shippingMethod').value.trim() === 'select') {
         return checkoutInfo;
     }
-    checkoutInfo.shippingMethod = document.getElementById('shippingMethod').value.trim();
+    checkoutInfo.shippingMethod = document.getElementById('shopemaa_shippingMethod').value.trim();
 
-    if (document.getElementById('paymentMethod').value.trim() === 'select') {
+    if (document.getElementById('shopemaa_paymentMethod').value.trim() === 'select') {
         return checkoutInfo;
     }
-    checkoutInfo.paymentMethod = document.getElementById('paymentMethod').value.trim();
+    checkoutInfo.paymentMethod = document.getElementById('shopemaa_paymentMethod').value.trim();
 
-    if (document.getElementById('coupon-code').value.trim() !== '') {
-        checkoutInfo.couponCode = document.getElementById('coupon-code').value.trim();
+    if (document.getElementById('shopemaa_coupon').value.trim() !== '') {
+        checkoutInfo.couponCode = document.getElementById('shopemaa_coupon').value.trim();
     }
 
     checkoutInfo.isValid = true;
@@ -1183,7 +1196,7 @@ function cartCacheCleanUp() {
 
 function createErrorModalSection(errMsg) {
     setTimeout(function () {
-        let errModal = document.getElementById('errorModal');
+        let errModal = document.getElementById('shopemaa_errorModal');
         if (errModal !== null && errModal !== undefined) {
             errModal.remove();
         }
@@ -1205,13 +1218,13 @@ function createErrorModalSection(errMsg) {
 
     let errorSection = document.createElement('section');
     errorSection.classList.add('relative');
-    errorSection.id = 'errorModal';
+    errorSection.id = 'shopemaa_errorModal';
     errorSection.innerHTML += errorModalSection;
     document.body.appendChild(errorSection);
 }
 
 function hideOrderDetailsModal() {
-    let orderModal = document.getElementById('orderModal');
+    let orderModal = document.getElementById('shopemaa_orderModal');
     if (orderModal !== null) {
         orderModal.remove();
     }
@@ -1259,21 +1272,21 @@ function createOrderDetailsModalSection(order) {
 
     let orderSection = document.createElement('section');
     orderSection.classList.add('relative');
-    orderSection.id = 'orderModal';
+    orderSection.id = 'shopemaa_orderModal';
     orderSection.innerHTML += orderModalSection;
     document.body.appendChild(orderSection);
 }
 
 function hideOrderSearchModal() {
-    let orderModal = document.getElementById('orderSearchModal');
+    let orderModal = document.getElementById('shopemaa_orderSearchModal');
     if (orderModal !== null) {
         orderModal.remove();
     }
 }
 
 function getOrderDetails() {
-    let orderHash = document.getElementById('order-hash').value;
-    let customerEmail = document.getElementById('customer-email').value;
+    let orderHash = document.getElementById('shopemaa_order-hash').value;
+    let customerEmail = document.getElementById('shopemaa_customer-email').value;
     let orderDetailsQuery = `query { orderByCustomerEmail(hash: "${orderHash}", email: "${customerEmail}") { id hash shippingCharge paymentProcessingFee subtotal grandTotal discountedAmount status paymentStatus createdAt updatedAt billingAddress { id street streetTwo city state postcode email phone location { id name shortCode } } shippingAddress { id street streetTwo city state postcode email phone location { id name shortCode } } cart { isShippingRequired cartItems { product { id name slug description fullImages isDigitalProduct productUnit } quantity purchasePrice attributes { name selectedValue } variation { id name price sku stock } } } customer { email phone firstName lastName profilePicture } paymentMethod { id displayName currencyName currencySymbol isDigitalPayment } shippingMethod { id displayName deliveryCharge deliveryTimeInDays WeightUnit isFlat isActive } couponCode { code } payments { isPaid payableAmount gatewayName } } }`;
     sendRequest(orderDetailsQuery).then(orderDetailsResp => {
         if (orderDetailsResp.ok) {
@@ -1301,11 +1314,11 @@ function createOrderSearchModalSection() {
                 <div class="pr-5 pl-5 pt-5">
                     <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-1/4 text-sm font-bold mb-2">Order Hash<span style="color: red">*</span></label>
-                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" id="order-hash" placeholder="Type here" required />
+                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="text" id="shopemaa_order-hash" placeholder="Type here" required />
                   </div>
                   <div class="flex mb-6 items-center justify-between border-black">
                      <label class="block w-1/4 text-sm font-bold mb-2">Your Email<span style="color: red">*</span></label>
-                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="email" id="customer-email" placeholder="Type here" required />
+                     <input class="w-3/4 h-12 py-3 px-4 text-sm placeholder-black font-bold border-2 border-black rounded-md focus:outline-indigo" type="email" id="shopemaa_customer-email" placeholder="Type here" required />
                   </div>
                 </div>
                 
@@ -1330,7 +1343,7 @@ function createOrderSearchModalSection() {
 
     let orderSection = document.createElement('section');
     orderSection.classList.add('relative');
-    orderSection.id = 'orderSearchModal';
+    orderSection.id = 'shopemaa_orderSearchModal';
     orderSection.innerHTML += orderModalSection;
     document.body.appendChild(orderSection);
 }
