@@ -10,7 +10,7 @@ Embeddable cart and checkout using Shopemaa to add checkout to any website.
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://shopemaa.link/themes/monalisa/js/main.js"></script>
 <script src="https://js.stripe.com/v3/"></script>
-<script src="https://cdn.jsdelivr.net/gh/shopemaa/shopemaa-checkout@v0.0.4/shopemaa.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/shopemaa/shopemaa-checkout@v0.0.5/shopemaa.js"></script>
 ```
 
 ### Initialize
