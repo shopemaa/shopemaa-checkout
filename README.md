@@ -49,4 +49,8 @@ initShopemaa("YOUR_STORE_APP_KEY", "YOUR_STORE_APP_SECRET");
 
 Check [index.html](./examples/index.html) from examples directory.
 
+### Integration Demo
+
+* [Hugo Static Site Generator](https://github.com/shopemaa/hargo-hugo)
+
 Copyright © 2023 [Shopemaa LLC](https://shopemaa.com)
