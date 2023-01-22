@@ -70,6 +70,14 @@ function findAndBindBuyBtns() {
         let productId = $(this).data('productId');
         addToCart(productId);
     })
+    $('.shopemaa-stock-up').click(function () {
+        let productId = $(this).data('productId');
+        addToCartWithQty(productId, 1);
+    })
+    $('.shopemaa-stock-down').click(function () {
+        let productId = $(this).data('productId');
+        addToCartWithQty(productId, -1);
+    })
 }
 
 function updateCartItemsCount() {
@@ -77,8 +85,33 @@ function updateCartItemsCount() {
     let elements = document.getElementsByClassName('shopemaa-cart-items-count');
     if (elements !== null && elements !== undefined) {
         let n = elements.length;
+        let c = 0;
+        bucket.items.forEach(item => {
+            c += item.qty;
+        });
+
         for (let i = 0; i < n; i++) {
-            elements.item(i).innerText = bucket.items.length;
+            elements.item(i).innerText = c;
+        }
+    }
+
+    updateCartItemQty();
+}
+
+function updateCartItemQty() {
+    let elements = document.getElementsByClassName('shopemaa-cart-item-qty');
+    if (elements !== null && elements !== undefined) {
+        let n = elements.length;
+        for (let i = 0; i < n; i++) {
+            let ele = elements.item(i);
+            let bucket = getBucket();
+            let productId = ele.dataset.productId;
+            let item = bucket.items.find(i => i.id === productId);
+            if (item !== null && item !== undefined) {
+                elements.item(i).innerText = item.qty;
+            } else {
+                elements.item(i).innerText = 0;
+            }
         }
     }
 }
@@ -105,6 +138,25 @@ function addToCart(productId) {
             let product = productData.data.product;
             if (product.stock > 0) {
                 addToCartWithChange(product, 1);
+            }
+        }).catch(err => {
+            logErr(err);
+        })
+    }).catch(err => {
+        logErr(err);
+    });
+}
+
+function addToCartWithQty(productId, qty) {
+    getProductById(productId).then(resp => {
+        if (!resp.ok) {
+            // handle error
+            return
+        }
+        resp.json().then(productData => {
+            let product = productData.data.product;
+            if (product.stock >= qty) {
+                addToCartWithChange(product, qty);
             }
         }).catch(err => {
             logErr(err);
