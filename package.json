@@ -3,6 +3,17 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/shopemaa-checkout.umd.cjs",
+  "module": "./dist/shopemaa-checkout.js",
+  "exports": {
+    ".": {
+      "import": "./dist/shopemaa-checkout.js",
+      "require": "./dist/shopemaa-checkout.umd.cjs"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
