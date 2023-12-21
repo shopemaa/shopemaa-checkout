@@ -4,4 +4,3 @@ shopemaa.m.js
 .DS_Store
 node_modules
 *.lock
-dist
