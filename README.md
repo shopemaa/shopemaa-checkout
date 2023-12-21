@@ -1,3 +1,9 @@
+# Packagin for npm
+
+First of all install dependencies.
+run commands `yarn build` & `npm publish` to publish the package to npm.
+
+
 # Shopemaa Checkout
 
 Embeddable cart and checkout using Shopemaa to add checkout to any website.
