@@ -3,7 +3,6 @@
 First of all install dependencies.
 run commands `yarn build` & `npm publish` to publish the package to npm.
 
-
 # Shopemaa Checkout
 
 Embeddable cart and checkout using Shopemaa to add checkout to any website.
@@ -11,19 +10,38 @@ Embeddable cart and checkout using Shopemaa to add checkout to any website.
 #### Add below code snippet to head block of HTML of your site.
 
 ```html
-
-<link rel="stylesheet" href="https://shopemaa.link/themes/monalisa/css/tailwind/tailwind.min.css">
+<link
+  rel="stylesheet"
+  href="https://shopemaa.link/themes/monalisa/css/tailwind/tailwind.min.css"
+/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://shopemaa.link/themes/monalisa/js/main.js"></script>
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdn.jsdelivr.net/gh/shopemaa/shopemaa-checkout@v0.0.6/shopemaa.js"></script>
 ```
 
+##### OR
+
+Install the npm package running command
+`npm install shopemaa-checkout` or `yard add shopemaa-checkout`
+
 ### Initialize
 
-Then call `initShopemaa` with your Store App key & Store App secret
+Add the snippet In your HTML page befor the `<body>` end tag, with your Store App key & Store App secret.
 
 ```js
+<script>
+  window.onload = function () {
+    shopemaa.initShopemaa("YOUR_STORE_APP_KEY", "YOUR_STORE_APP_SECRET");
+  };
+</script>
+```
+
+Or call `initShopemaa` with your Store App key & Store App secret
+
+```js
+import { initShopemaa } from "shopemaa-checkout";
+
 initShopemaa("YOUR_STORE_APP_KEY", "YOUR_STORE_APP_SECRET");
 ```
 
