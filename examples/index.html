@@ -37,12 +37,14 @@
     <a class="shopemaa-order-track-btn btn btn-secondary">Track Order</a>
 </div>
 
-<script src="../shopemaa.js"></script>
-<script>
-    window.onload = function () {
-        initShopemaa("YOUR_STORE_APP_KEY", "YOUR_STORE_APP_SECRET")
-    }
-</script>
-
+<script src="../browser/shopemaa.js"></script>
+    <script>
+      window.onload = function () {
+        shopemaa.initShopemaa(
+          "449deb1f320c4ebdb70fe19ea1041df82ee9a0a577034000bd94f8d8c15e3b6d1632105a92f346eb8e5ddcc45af64d87",
+          "64733a8d1be94c9e96430fd918c71a0efe4d101be160403eb7def977eb34f32a"
+        );
+      };
+    </script>
 </body>
 </html>
