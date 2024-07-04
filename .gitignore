@@ -1,3 +1,6 @@
 .idea/
 examples/example.html
 shopemaa.m.js
+.DS_Store
+node_modules
+*.lock
