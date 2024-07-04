@@ -1,242 +1,244 @@
-function ne(e, a) {
-  _(e), j(a), L(), w(), A(), X(), I();
-}
-function _(e) {
-  localStorage.setItem("shopemaa_store_key", e);
-}
-function E() {
-  return localStorage.getItem("shopemaa_store_key");
-}
-function j(e) {
-  localStorage.setItem("shopemaa_store_secret", e);
-}
-function q() {
-  return localStorage.getItem("shopemaa_store_secret");
-}
-function w() {
-  localStorage.getItem("shopemaaCheckoutBucket") === null && h();
-}
-function h() {
-  let e = {
-    cartId: null,
-    items: [],
-    shippingCharge: 0,
-    paymentFee: 0,
-    discount: 0,
-    paymentMethodId: null,
-    shippingMethodId: null,
-    initAt: (/* @__PURE__ */ new Date()).getMilliseconds()
-  };
-  localStorage.setItem("shopemaaCheckoutBucket", JSON.stringify(e));
-}
-function c() {
-  let e = localStorage.getItem("shopemaaCheckoutBucket");
-  return e === null && (w(), e = localStorage.getItem("shopemaaCheckoutBucket")), JSON.parse(e);
-}
-function f(e) {
-  e.items = e.items.sort((a, t) => a.orderIndex - t.orderIndex), localStorage.setItem("shopemaaCheckoutBucket", JSON.stringify(e));
-}
-function A() {
-  D(), G(), P();
-}
-function D() {
-  $(".shopemaa-buy-btn").click(function() {
-    let e = $(this).data("productId");
-    O(e);
-  }), $(".shopemaa-stock-up").click(function() {
-    let e = $(this).data("productId");
-    g(e, 1);
-  }), $(".shopemaa-stock-down").click(function() {
-    let e = $(this).data("productId");
-    g(e, -1);
-  });
-}
-function I() {
-  let e = c(), a = document.getElementsByClassName("shopemaa-cart-items-count");
-  if (a != null) {
-    let t = a.length, o = 0;
-    e.items.forEach((n) => {
-      o += n.qty;
-    });
-    for (let n = 0; n < t; n++)
-      a.item(n).innerText = o;
+var j = (e, a) => () => (a || e((a = { exports: {} }).exports, a), a.exports);
+var de = j((se, _) => {
+  function w(e, a) {
+    q(e), D(a), H(), S(), G(), te(), I();
   }
-  N();
-}
-function N() {
-  let e = document.getElementsByClassName("shopemaa-cart-item-qty");
-  if (e != null) {
-    let a = e.length;
-    for (let t = 0; t < a; t++) {
-      let o = e.item(t), n = c(), i = o.dataset.productId, l = n.items.find((b) => b.id === i);
-      l != null ? e.item(t).innerText = l.qty : e.item(t).innerText = 0;
+  function q(e) {
+    localStorage.setItem("shopemaa_store_key", e);
+  }
+  function A() {
+    return localStorage.getItem("shopemaa_store_key");
+  }
+  function D(e) {
+    localStorage.setItem("shopemaa_store_secret", e);
+  }
+  function N() {
+    return localStorage.getItem("shopemaa_store_secret");
+  }
+  function S() {
+    localStorage.getItem("shopemaaCheckoutBucket") === null && h();
+  }
+  function h() {
+    let e = {
+      cartId: null,
+      items: [],
+      shippingCharge: 0,
+      paymentFee: 0,
+      discount: 0,
+      paymentMethodId: null,
+      shippingMethodId: null,
+      initAt: (/* @__PURE__ */ new Date()).getMilliseconds()
+    };
+    localStorage.setItem("shopemaaCheckoutBucket", JSON.stringify(e));
+  }
+  function c() {
+    let e = localStorage.getItem("shopemaaCheckoutBucket");
+    return e === null && (S(), e = localStorage.getItem("shopemaaCheckoutBucket")), JSON.parse(e);
+  }
+  function f(e) {
+    e.items = e.items.sort((a, t) => a.orderIndex - t.orderIndex), localStorage.setItem("shopemaaCheckoutBucket", JSON.stringify(e));
+  }
+  function G() {
+    P(), F(), L();
+  }
+  function P() {
+    $(".shopemaa-buy-btn").click(function() {
+      let e = $(this).data("productId");
+      V(e);
+    }), $(".shopemaa-stock-up").click(function() {
+      let e = $(this).data("productId");
+      g(e, 1);
+    }), $(".shopemaa-stock-down").click(function() {
+      let e = $(this).data("productId");
+      g(e, -1);
+    });
+  }
+  function I() {
+    let e = c(), a = document.getElementsByClassName("shopemaa-cart-items-count");
+    if (a != null) {
+      let t = a.length, o = 0;
+      e.items.forEach((n) => {
+        o += n.qty;
+      });
+      for (let n = 0; n < t; n++)
+        a.item(n).innerText = o;
+    }
+    O();
+  }
+  function O() {
+    let e = document.getElementsByClassName("shopemaa-cart-item-qty");
+    if (e != null) {
+      let a = e.length;
+      for (let t = 0; t < a; t++) {
+        let o = e.item(t), n = c(), i = o.dataset.productId, l = n.items.find((b) => b.id === i);
+        l != null ? e.item(t).innerText = l.qty : e.item(t).innerText = 0;
+      }
     }
   }
-}
-function G() {
-  $(".shopemaa-cart-btn").click(function() {
-    v(!0);
-  });
-}
-function P() {
-  $(".shopemaa-order-track-btn").click(function() {
-    oe();
-  });
-}
-function O(e) {
-  S(e).then((a) => {
-    a.ok && a.json().then((t) => {
-      let o = t.data.product;
-      o.stock > 0 && y(o, 1);
-    }).catch((t) => {
-      d(t);
+  function F() {
+    $(".shopemaa-cart-btn").click(function() {
+      v(!0);
     });
-  }).catch((a) => {
-    d(a);
-  });
-}
-function g(e, a) {
-  S(e).then((t) => {
-    t.ok && t.json().then((o) => {
-      let n = o.data.product;
-      n.stock >= a && y(n, a);
-    }).catch((o) => {
-      d(o);
-    });
-  }).catch((t) => {
-    d(t);
-  });
-}
-function k(e, a) {
-  c().items.forEach((o) => {
-    let n = `shopemaa_cart_item_${o.id}`, i = document.getElementById(n);
-    i != null && i.remove();
-  }), y(e, a);
-}
-function y(e, a) {
-  let t = c(), o = t.items.find((n) => n.id === e.id);
-  o == null ? t.items.push({
-    id: e.id,
-    name: e.name,
-    stock: e.stock,
-    qty: 1,
-    fullImages: e.fullImages,
-    productSpecificDiscount: e.productSpecificDiscount,
-    price: e.price,
-    orderIndex: t.items.length + 1
-  }) : o.qty + a <= e.stock && (o.qty += a, t.items = t.items.filter((n) => n.id !== e.id), o.qty > 0 && t.items.push(o)), f(t), v(!0), I();
-}
-function S(e) {
-  let a = `query { product(productId: "${e}") { id name price stock fullImages productSpecificDiscount attributes { id name values isRequired } } }`;
-  return p(a);
-}
-function p(e) {
-  return fetch(F(), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "store-key": E(),
-      "store-secret": q()
-    },
-    body: JSON.stringify({
-      query: e
-    })
-  });
-}
-function F() {
-  return "https://api.shopemaa.com/query";
-}
-function L() {
-  p("query { storeBySecret { name title description currency isOpen } }").then((a) => {
-    a.ok && a.json().then((t) => {
-      localStorage.setItem(
-        "shopemaaStoreInfo",
-        JSON.stringify(t.data.storeBySecret)
-      );
-    }).catch((t) => {
-      d(t);
-    });
-  }).catch((a) => {
-    d(a);
-  });
-}
-function V() {
-  return JSON.parse(localStorage.getItem("shopemaaStoreInfo"));
-}
-function s() {
-  return V().currency;
-}
-function m(e) {
-  let a = e.price;
-  return e.productSpecificDiscount !== 0 && (a = a - e.productSpecificDiscount * a / 100), a;
-}
-function R() {
-  let e = 0;
-  c().items.forEach((a) => {
-    e += a.qty * m(a);
-  }), document.getElementById("shopemaa_cart-subtotal").innerText = (e / 100).toFixed(2) + " " + s();
-}
-function H() {
-  let e = c(), a = 0;
-  e.items.forEach((o) => {
-    a += o.qty * m(o);
-  });
-  let t = a;
-  document.getElementById("shopemaa_cart-grand-total").innerText = (t / 100).toFixed(2) + " " + s();
-}
-function v(e) {
-  if (e) {
-    let a = document.getElementById("shopemaa_cartModal");
-    a == null && z();
-    let t = document.getElementById("shopemaa_cartItemsView");
-    c().items.forEach((o) => {
-      t.appendChild(U(o));
-      let n = document.getElementById(
-        `shopemaa_qty_minus_${o.id}`
-      );
-      n.onclick = function() {
-        k(o, -1);
-      };
-      let i = document.getElementById(`shopemaa_qty_plus_${o.id}`);
-      i.onclick = function() {
-        k(o, 1);
-      };
-    }), R(), H();
-  } else {
-    let a = document.getElementById("shopemaa_cartModal");
-    a != null && a.remove();
   }
-}
-function U(e) {
-  let a = e.fullImages[0], t = m(e), o = document.createElement("button");
-  o.classList.add(
-    "flex",
-    "w-3.5",
-    "h-3.5",
-    "px-px",
-    "items-center",
-    "justify-center",
-    "bg-black",
-    "hover:bg-indigo-500",
-    "rounded",
-    "transition",
-    "duration-100"
-  ), o.innerHTML = '<div class="h-px mx-px w-full bg-white"></div>', o.id = `shopemaa_qty_minus_${e.id}`;
-  let n = document.createElement("button");
-  n.classList.add(
-    "flex",
-    "w-3.5",
-    "h-3.5",
-    "px-px",
-    "items-center",
-    "justify-center",
-    "bg-black",
-    "hover:bg-indigo-500",
-    "rounded",
-    "transition",
-    "duration-100"
-  ), n.innerHTML = '<div class="relative h-full w-full py-px"> <div class="absolute top-1/2 left-0 h-px w-full bg-white"></div> <div class="inline-block max-w-max mx-auto h-full bg-white"> <div class="inline-block px-px"></div> </div> </div>', n.id = `shopemaa_qty_plus_${e.id}`;
-  let i = `<div class="flex mb-6 justify-between items-center">
+  function L() {
+    $(".shopemaa-order-track-btn").click(function() {
+      le();
+    });
+  }
+  function V(e) {
+    C(e).then((a) => {
+      a.ok && a.json().then((t) => {
+        let o = t.data.product;
+        o.stock > 0 && y(o, 1);
+      }).catch((t) => {
+        d(t);
+      });
+    }).catch((a) => {
+      d(a);
+    });
+  }
+  function g(e, a) {
+    C(e).then((t) => {
+      t.ok && t.json().then((o) => {
+        let n = o.data.product;
+        n.stock >= a && y(n, a);
+      }).catch((o) => {
+        d(o);
+      });
+    }).catch((t) => {
+      d(t);
+    });
+  }
+  function k(e, a) {
+    c().items.forEach((o) => {
+      let n = `shopemaa_cart_item_${o.id}`, i = document.getElementById(n);
+      i != null && i.remove();
+    }), y(e, a);
+  }
+  function y(e, a) {
+    let t = c(), o = t.items.find((n) => n.id === e.id);
+    o == null ? t.items.push({
+      id: e.id,
+      name: e.name,
+      stock: e.stock,
+      qty: 1,
+      fullImages: e.fullImages,
+      productSpecificDiscount: e.productSpecificDiscount,
+      price: e.price,
+      orderIndex: t.items.length + 1
+    }) : o.qty + a <= e.stock && (o.qty += a, t.items = t.items.filter((n) => n.id !== e.id), o.qty > 0 && t.items.push(o)), f(t), v(!0), I();
+  }
+  function C(e) {
+    let a = `query { product(productId: "${e}") { id name price stock fullImages productSpecificDiscount attributes { id name values isRequired } } }`;
+    return p(a);
+  }
+  function p(e) {
+    return fetch(R(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "store-key": A(),
+        "store-secret": N()
+      },
+      body: JSON.stringify({
+        query: e
+      })
+    });
+  }
+  function R() {
+    return "https://api.shopemaa.com/query";
+  }
+  function H() {
+    p("query { storeBySecret { name title description currency isOpen } }").then((a) => {
+      a.ok && a.json().then((t) => {
+        localStorage.setItem(
+          "shopemaaStoreInfo",
+          JSON.stringify(t.data.storeBySecret)
+        );
+      }).catch((t) => {
+        d(t);
+      });
+    }).catch((a) => {
+      d(a);
+    });
+  }
+  function U() {
+    return JSON.parse(localStorage.getItem("shopemaaStoreInfo"));
+  }
+  function s() {
+    return U().currency;
+  }
+  function m(e) {
+    let a = e.price;
+    return e.productSpecificDiscount !== 0 && (a = a - e.productSpecificDiscount * a / 100), a;
+  }
+  function z() {
+    let e = 0;
+    c().items.forEach((a) => {
+      e += a.qty * m(a);
+    }), document.getElementById("shopemaa_cart-subtotal").innerText = (e / 100).toFixed(2) + " " + s();
+  }
+  function K() {
+    let e = c(), a = 0;
+    e.items.forEach((o) => {
+      a += o.qty * m(o);
+    });
+    let t = a;
+    document.getElementById("shopemaa_cart-grand-total").innerText = (t / 100).toFixed(2) + " " + s();
+  }
+  function v(e) {
+    if (e) {
+      let a = document.getElementById("shopemaa_cartModal");
+      a == null && W();
+      let t = document.getElementById("shopemaa_cartItemsView");
+      c().items.forEach((o) => {
+        t.appendChild(J(o));
+        let n = document.getElementById(
+          `shopemaa_qty_minus_${o.id}`
+        );
+        n.onclick = function() {
+          k(o, -1);
+        };
+        let i = document.getElementById(`shopemaa_qty_plus_${o.id}`);
+        i.onclick = function() {
+          k(o, 1);
+        };
+      }), z(), K();
+    } else {
+      let a = document.getElementById("shopemaa_cartModal");
+      a != null && a.remove();
+    }
+  }
+  function J(e) {
+    let a = e.fullImages[0], t = m(e), o = document.createElement("button");
+    o.classList.add(
+      "flex",
+      "w-3.5",
+      "h-3.5",
+      "px-px",
+      "items-center",
+      "justify-center",
+      "bg-black",
+      "hover:bg-indigo-500",
+      "rounded",
+      "transition",
+      "duration-100"
+    ), o.innerHTML = '<div class="h-px mx-px w-full bg-white"></div>', o.id = `shopemaa_qty_minus_${e.id}`;
+    let n = document.createElement("button");
+    n.classList.add(
+      "flex",
+      "w-3.5",
+      "h-3.5",
+      "px-px",
+      "items-center",
+      "justify-center",
+      "bg-black",
+      "hover:bg-indigo-500",
+      "rounded",
+      "transition",
+      "duration-100"
+    ), n.innerHTML = '<div class="relative h-full w-full py-px"> <div class="absolute top-1/2 left-0 h-px w-full bg-white"></div> <div class="inline-block max-w-max mx-auto h-full bg-white"> <div class="inline-block px-px"></div> </div> </div>', n.id = `shopemaa_qty_plus_${e.id}`;
+    let i = `<div class="flex mb-6 justify-between items-center">
                       <div class="flex-grow flex flex-wrap -mx-2">
                           <div class="w-full xs:w-auto px-2 mb-2 xs:mb-0">
                               <img class="w-24 h-full max-h-24 border-2 border-black rounded-md shadow p-1"
@@ -256,10 +258,10 @@ function U(e) {
                           <span class="text-xl font-bold">${(t / 100).toFixed(2)} ${s()}</span>
                       </div>
                   </div>`, l = document.createElement("div");
-  return l.id = `shopemaa_cart_item_${e.id}`, l.innerHTML = i, l;
-}
-function z() {
-  let e = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
+    return l.id = `shopemaa_cart_item_${e.id}`, l.innerHTML = i, l;
+  }
+  function W() {
+    let e = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
           <div class="relative ml-auto w-full max-w-lg bg-white">
               <div class="p-6 border-b-2 border-black">
                   <h3 class="text-2xl font-bold">Your Cart</h3>
@@ -319,105 +321,105 @@ function z() {
               </div>
           </div>
       </div>`, a = document.createElement("section");
-  a.classList.add("relative"), a.id = "shopemaa_cartModal", a.innerHTML += e, document.body.appendChild(a);
-}
-function K() {
-  let e = c();
-  e.items.length !== 0 && (u(!1), e.shippingCharge = 0, e.paymentFee = 0, e.discount = 0, e.paymentMethodId = null, e.shippingMethodId = null, f(e), J());
-}
-function J() {
-  let e = c(), a = "[";
-  if (e.items.forEach((t) => {
-    a += `{ productId: "${t.id}" quantity: ${t.qty} }`;
-  }), a += "]", e.cartId === null) {
-    let t = "mutation { newCart(params: { cartItems: " + a + " }) { id isShippingRequired } }";
-    x(p(t), !0);
-  } else {
-    let t = `mutation { updateCart(id: "${e.cartId}" params: { cartItems: ` + a + " }) { id isShippingRequired } }";
-    x(p(t), !1);
+    a.classList.add("relative"), a.id = "shopemaa_cartModal", a.innerHTML += e, document.body.appendChild(a);
   }
-}
-function x(e, a) {
-  e.then((t) => {
-    if (!t.ok) {
-      d(`create or update cart response is: ${t.statusText}`), u(!0);
-      return;
+  function Q() {
+    let e = c();
+    e.items.length !== 0 && (u(!1), e.shippingCharge = 0, e.paymentFee = 0, e.discount = 0, e.paymentMethodId = null, e.shippingMethodId = null, f(e), Y());
+  }
+  function Y() {
+    let e = c(), a = "[";
+    if (e.items.forEach((t) => {
+      a += `{ productId: "${t.id}" quantity: ${t.qty} }`;
+    }), a += "]", e.cartId === null) {
+      let t = "mutation { newCart(params: { cartItems: " + a + " }) { id isShippingRequired } }";
+      x(p(t), !0);
+    } else {
+      let t = `mutation { updateCart(id: "${e.cartId}" params: { cartItems: ` + a + " }) { id isShippingRequired } }";
+      x(p(t), !1);
     }
-    t.json().then((o) => {
-      if (o.data === null) {
-        d("create or update cart response body is NULL"), u(!0);
+  }
+  function x(e, a) {
+    e.then((t) => {
+      if (!t.ok) {
+        d(`create or update cart response is: ${t.statusText}`), u(!0);
         return;
       }
-      if (a) {
-        let n = o.data.newCart.id, i = c();
-        i.cartId = n, f(i);
-      }
-      v(!1), B();
-    }).catch((o) => {
-      u(!0), d(o);
+      t.json().then((o) => {
+        if (o.data === null) {
+          d("create or update cart response body is NULL"), u(!0);
+          return;
+        }
+        if (a) {
+          let n = o.data.newCart.id, i = c();
+          i.cartId = n, f(i);
+        }
+        v(!1), M();
+      }).catch((o) => {
+        u(!0), d(o);
+      });
+    }).catch((t) => {
+      u(!0), d(t);
     });
-  }).catch((t) => {
-    u(!0), d(t);
-  });
-}
-function u(e) {
-  if (e) {
-    let a = document.getElementById("shopemaa_checkoutBtn");
-    a.style.display = "block";
-    let t = document.getElementById("shopemaa_creatingCartBtn");
-    t.style.display = "none";
-  } else {
-    let a = document.getElementById("shopemaa_checkoutBtn");
-    a.style.display = "none";
-    let t = document.getElementById("shopemaa_creatingCartBtn");
-    t.style.display = "block";
   }
-}
-function C() {
-  let e = c(), a = 0;
-  e.items.forEach((l) => {
-    a += l.qty * m(l);
-  }), document.getElementById("shopemaa_checkout-subtotal").innerText = (a / 100).toFixed(2) + " " + s();
-  let t = e.discount;
-  document.getElementById("shopemaa_checkout-discount").innerText = "-" + (t / 100).toFixed(2) + " " + s();
-  let o = e.shippingCharge;
-  document.getElementById("shopemaa_checkout-shipping-charge").innerText = (o / 100).toFixed(2) + " " + s();
-  let n = e.paymentFee;
-  document.getElementById("shopemaa_checkout-payment-fee").innerText = (n / 100).toFixed(2) + " " + s();
-  let i = ((a + o + n - t) / 100).toFixed(2);
-  document.getElementById("shopemaa_checkout-grand-total").innerText = i + " " + s();
-}
-function W(e) {
-  if (e)
-    B();
-  else {
-    let a = document.getElementById("shopemaa_checkoutModal");
-    a != null && a.remove();
+  function u(e) {
+    if (e) {
+      let a = document.getElementById("shopemaa_checkoutBtn");
+      a.style.display = "block";
+      let t = document.getElementById("shopemaa_creatingCartBtn");
+      t.style.display = "none";
+    } else {
+      let a = document.getElementById("shopemaa_checkoutBtn");
+      a.style.display = "none";
+      let t = document.getElementById("shopemaa_creatingCartBtn");
+      t.style.display = "block";
+    }
   }
-}
-function Q(e) {
-  if (document.getElementById("shopemaa_coupon").value.trim() === "")
-    return;
-  let a = document.getElementById("shopemaa_coupon").value, t = c(), o = "", n = document.getElementById(
-    "shopemaa_shippingMethod"
-  ).value;
-  n != null && n !== "select" && (o = `shippingMethodId: "${n}"`);
-  let i = `query { checkDiscountForGuests(couponCode: "${a}" cartId: "${t.cartId}" ${o}) }`;
-  p(i).then((l) => {
-    l.ok && l.json().then((b) => {
-      if (b.data === null)
-        return;
-      let T = b.data.checkDiscountForGuests;
-      t = c(), t.discount = T, f(t), C();
-    }).catch((b) => {
-      d(b);
+  function B() {
+    let e = c(), a = 0;
+    e.items.forEach((l) => {
+      a += l.qty * m(l);
+    }), document.getElementById("shopemaa_checkout-subtotal").innerText = (a / 100).toFixed(2) + " " + s();
+    let t = e.discount;
+    document.getElementById("shopemaa_checkout-discount").innerText = "-" + (t / 100).toFixed(2) + " " + s();
+    let o = e.shippingCharge;
+    document.getElementById("shopemaa_checkout-shipping-charge").innerText = (o / 100).toFixed(2) + " " + s();
+    let n = e.paymentFee;
+    document.getElementById("shopemaa_checkout-payment-fee").innerText = (n / 100).toFixed(2) + " " + s();
+    let i = ((a + o + n - t) / 100).toFixed(2);
+    document.getElementById("shopemaa_checkout-grand-total").innerText = i + " " + s();
+  }
+  function Z(e) {
+    if (e)
+      M();
+    else {
+      let a = document.getElementById("shopemaa_checkoutModal");
+      a != null && a.remove();
+    }
+  }
+  function X(e) {
+    if (document.getElementById("shopemaa_coupon").value.trim() === "")
+      return;
+    let a = document.getElementById("shopemaa_coupon").value, t = c(), o = "", n = document.getElementById(
+      "shopemaa_shippingMethod"
+    ).value;
+    n != null && n !== "select" && (o = `shippingMethodId: "${n}"`);
+    let i = `query { checkDiscountForGuests(couponCode: "${a}" cartId: "${t.cartId}" ${o}) }`;
+    p(i).then((l) => {
+      l.ok && l.json().then((b) => {
+        if (b.data === null)
+          return;
+        let E = b.data.checkDiscountForGuests;
+        t = c(), t.discount = E, f(t), B();
+      }).catch((b) => {
+        d(b);
+      });
+    }).catch((l) => {
+      d(l);
     });
-  }).catch((l) => {
-    d(l);
-  });
-}
-function B() {
-  let e = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80">
+  }
+  function M() {
+    let e = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80">
     <form>
        <div class="relative ml-auto w-full max-w-lg bg-white">
           <div class="p-6 border-b-2 border-black">
@@ -779,66 +781,66 @@ function B() {
        </div>
     </form>
  </div>`, a = document.createElement("section");
-  a.classList.add("relative"), a.id = "shopemaa_checkoutModal", a.innerHTML += e, document.body.appendChild(a), C(), Y(), Z();
-}
-function Y() {
-  p("query { shippingMethods { id displayName deliveryCharge deliveryTimeInDays WeightUnit isFlat isActive } }").then((a) => {
-    a.ok && a.json().then((t) => {
-      if (t.data !== null) {
-        let o = t.data.shippingMethods, n = document.getElementById(
-          "shopemaa_shippingMethod"
-        );
-        o.forEach((i) => {
-          let l = document.createElement("option");
-          l.id = i.id, l.value = i.id, i.deliveryTimeInDays === 1 || i.deliveryTimeInDays === 0 ? l.innerText = i.displayName + " (Delivering today)" : l.innerText = i.displayName + ` (Approx. delivery in ${i.deliveryTimeInDays})`, n.appendChild(l);
-        });
-      }
-    }).catch((t) => {
-      d(t);
+    a.classList.add("relative"), a.id = "shopemaa_checkoutModal", a.innerHTML += e, document.body.appendChild(a), B(), ee(), ae();
+  }
+  function ee() {
+    p("query { shippingMethods { id displayName deliveryCharge deliveryTimeInDays WeightUnit isFlat isActive } }").then((a) => {
+      a.ok && a.json().then((t) => {
+        if (t.data !== null) {
+          let o = t.data.shippingMethods, n = document.getElementById(
+            "shopemaa_shippingMethod"
+          );
+          o.forEach((i) => {
+            let l = document.createElement("option");
+            l.id = i.id, l.value = i.id, i.deliveryTimeInDays === 1 || i.deliveryTimeInDays === 0 ? l.innerText = i.displayName + " (Delivering today)" : l.innerText = i.displayName + ` (Approx. delivery in ${i.deliveryTimeInDays})`, n.appendChild(l);
+          });
+        }
+      }).catch((t) => {
+        d(t);
+      });
+    }).catch((a) => {
+      d(a);
     });
-  }).catch((a) => {
-    d(a);
-  });
-}
-function Z() {
-  p("query { paymentMethods { id displayName currencyName currencySymbol isDigitalPayment } }").then((a) => {
-    a.ok && a.json().then((t) => {
-      if (t.data !== null) {
-        let o = t.data.paymentMethods, n = document.getElementById(
-          "shopemaa_paymentMethod"
-        );
-        o.forEach((i) => {
-          let l = document.createElement("option");
-          l.id = i.id, l.value = i.id, l.innerText = i.displayName, n.appendChild(l);
-        });
-      }
-    }).catch((t) => {
-      d(t);
+  }
+  function ae() {
+    p("query { paymentMethods { id displayName currencyName currencySymbol isDigitalPayment } }").then((a) => {
+      a.ok && a.json().then((t) => {
+        if (t.data !== null) {
+          let o = t.data.paymentMethods, n = document.getElementById(
+            "shopemaa_paymentMethod"
+          );
+          o.forEach((i) => {
+            let l = document.createElement("option");
+            l.id = i.id, l.value = i.id, l.innerText = i.displayName, n.appendChild(l);
+          });
+        }
+      }).catch((t) => {
+        d(t);
+      });
+    }).catch((a) => {
+      d(a);
     });
-  }).catch((a) => {
-    d(a);
-  });
-}
-function r() {
-  return "gray";
-}
-function d(e) {
-  console.log(e);
-}
-function X() {
-  let e = 864e5, a = function() {
-    console.log("Performing cart cleanup");
-    let t = c(), o = 1e3 * 60 * 60 * 24, n = t.initAt;
-    n == null && h(), (/* @__PURE__ */ new Date()).getMilliseconds() - n >= o && h();
-  };
-  setInterval(a, e), a();
-}
-function ee() {
-  let e = document.getElementById("shopemaa_orderModal");
-  e !== null && e.remove();
-}
-function ae(e) {
-  let a = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
+  }
+  function r() {
+    return "gray";
+  }
+  function d(e) {
+    console.log(e);
+  }
+  function te() {
+    let e = 864e5, a = function() {
+      console.log("Performing cart cleanup");
+      let t = c(), o = 1e3 * 60 * 60 * 24, n = t.initAt;
+      n == null && h(), (/* @__PURE__ */ new Date()).getMilliseconds() - n >= o && h();
+    };
+    setInterval(a, e), a();
+  }
+  function oe() {
+    let e = document.getElementById("shopemaa_orderModal");
+    e !== null && e.remove();
+  }
+  function ne(e) {
+    let a = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
           <div class="relative ml-auto w-full h-full max-w-lg bg-white">
               <div class="p-6 border-b-2 border-black">
                   <h3 class="text-2xl font-bold text-center">Thank you for your order!</h3>
@@ -876,28 +878,28 @@ function ae(e) {
               </div>
           </div>
       </div>`, t = document.createElement("section");
-  t.classList.add("relative"), t.id = "shopemaa_orderModal", t.innerHTML += a, document.body.appendChild(t);
-}
-function M() {
-  let e = document.getElementById("shopemaa_orderSearchModal");
-  e !== null && e.remove();
-}
-function te() {
-  let e = document.getElementById("shopemaa_order-hash").value, a = document.getElementById("shopemaa_customer-email").value, t = `query { orderByCustomerEmail(hash: "${e}", email: "${a}") { id hash shippingCharge paymentProcessingFee subtotal grandTotal discountedAmount status paymentStatus createdAt updatedAt billingAddress { id street streetTwo city state postcode email phone location { id name shortCode } } shippingAddress { id street streetTwo city state postcode email phone location { id name shortCode } } cart { isShippingRequired cartItems { product { id name slug description fullImages isDigitalProduct productUnit } quantity purchasePrice attributes { name selectedValue } variation { id name price sku stock } } } customer { email phone firstName lastName profilePicture } paymentMethod { id displayName currencyName currencySymbol isDigitalPayment } shippingMethod { id displayName deliveryCharge deliveryTimeInDays WeightUnit isFlat isActive } couponCode { code } payments { isPaid payableAmount gatewayName } } }`;
-  p(t).then((o) => {
-    o.ok && o.json().then((n) => {
-      n.data !== null && (M(), ae(
-        n.data.orderByCustomerEmail
-      ));
-    }).catch((n) => {
-      d(n);
+    t.classList.add("relative"), t.id = "shopemaa_orderModal", t.innerHTML += a, document.body.appendChild(t);
+  }
+  function T() {
+    let e = document.getElementById("shopemaa_orderSearchModal");
+    e !== null && e.remove();
+  }
+  function ie() {
+    let e = document.getElementById("shopemaa_order-hash").value, a = document.getElementById("shopemaa_customer-email").value, t = `query { orderByCustomerEmail(hash: "${e}", email: "${a}") { id hash shippingCharge paymentProcessingFee subtotal grandTotal discountedAmount status paymentStatus createdAt updatedAt billingAddress { id street streetTwo city state postcode email phone location { id name shortCode } } shippingAddress { id street streetTwo city state postcode email phone location { id name shortCode } } cart { isShippingRequired cartItems { product { id name slug description fullImages isDigitalProduct productUnit } quantity purchasePrice attributes { name selectedValue } variation { id name price sku stock } } } customer { email phone firstName lastName profilePicture } paymentMethod { id displayName currencyName currencySymbol isDigitalPayment } shippingMethod { id displayName deliveryCharge deliveryTimeInDays WeightUnit isFlat isActive } couponCode { code } payments { isPaid payableAmount gatewayName } } }`;
+    p(t).then((o) => {
+      o.ok && o.json().then((n) => {
+        n.data !== null && (T(), ne(
+          n.data.orderByCustomerEmail
+        ));
+      }).catch((n) => {
+        d(n);
+      });
+    }).catch((o) => {
+      d(o);
     });
-  }).catch((o) => {
-    d(o);
-  });
-}
-function oe() {
-  let e = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
+  }
+  function le() {
+    let e = `<div class="fixed overflow-y-auto z-50 top-0 left-0 w-full h-full bg-gray-900 bg-opacity-80 pb-3">
           <div class="relative ml-auto w-full h-full max-w-lg bg-white">
               <div class="p-6 border-b-2 border-black">
                   <h3 class="text-2xl font-bold text-center">Track Order</h3>
@@ -932,11 +934,11 @@ function oe() {
               </div>
           </div>
       </div>`, a = document.createElement("section");
-  a.classList.add("relative"), a.id = "shopemaa_orderSearchModal", a.innerHTML += e, document.body.appendChild(a);
-}
-(async function() {
-  typeof window < "u" && (window.shopemaa = window.shopemaa || {}, window.shopemaa.hideOrderSearchModal = M, window.shopemaa.getOrderDetails = te, window.shopemaa.onGotoCheckout = K, window.shopemaa.toggleCartView = v, window.shopemaa.applyDiscount = Q, window.shopemaa.hideOrderDetailsModal = ee, window.shopemaa.toggleCheckoutView = W, window.shopemaa.toggleCheckoutBtn = u);
-})();
-export {
-  ne as initShopemaa
-};
+    a.classList.add("relative"), a.id = "shopemaa_orderSearchModal", a.innerHTML += e, document.body.appendChild(a);
+  }
+  (async function() {
+    typeof window < "u" && (window.shopemaa = window.shopemaa || {}, window.shopemaa.initShopemaa = w, window.shopemaa.hideOrderSearchModal = T, window.shopemaa.getOrderDetails = ie, window.shopemaa.onGotoCheckout = Q, window.shopemaa.toggleCartView = v, window.shopemaa.applyDiscount = X, window.shopemaa.hideOrderDetailsModal = oe, window.shopemaa.toggleCheckoutView = Z, window.shopemaa.toggleCheckoutBtn = u);
+  })();
+  _.exports = w;
+});
+export default de();
